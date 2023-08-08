@@ -1,0 +1,30 @@
+{
+  "name": "pitch-accent",
+  "version": "0.0.1",
+  "description": "Predict pitch accent in Japanese.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jamie Birch",
+  "devDependencies": {
+    "eslint-config-prettier": "^9.0.0",
+    "eslint": "^8.46.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.3",
+    "prettier": "^3.0.1",
+    "typescript": "^5.1.6"
+  },
+  "lint-staged": {
+    "*.{js,jsx,css,md,json}": "prettier --write",
+    "*.{js,jsx}": "eslint --fix --format=pretty"
+  },
+  "files": [
+    "dist",
+    "LICENCE-BSD.txt",
+    "LICENCE-GPL.txt",
+    "LICENCE-LGPL.txt"
+  ],
+  "license": "(BSD-3-Clause OR LGPL-2.1-only OR GPL-2.0-only)"
+}
