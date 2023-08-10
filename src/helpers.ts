@@ -33,6 +33,21 @@ export function* syllables(surface: string) {
   }
 }
 
+/**
+ * Gets the syllable weight.
+ * @returns "L" for light, or "H" for heavy.
+ */
+export function weighSyllable(morae: string[]) {
+  return morae.length <= 1 ? 'L' : 'H';
+}
+
+/**
+ * Warning: I'm unfamiliar with epenthesis so not sure how correct this is.
+ */
+export function hasEpentheticVowel(mora: string) {
+  return /[くすつぬむるずづぐクスツヌムルズヅグ]/.test(mora);
+}
+
 // TODO: We may find reason to include whether each mora is light or heavy, so
 // may in future return an object rather than just a string.
 // TODO: could generalise to reuse logic from syllables

@@ -1,4 +1,4 @@
-import { morae, syllables } from './helpers';
+import { hasEpentheticVowel, morae, syllables, weighSyllable } from './helpers';
 
 export function solve(tokens: [Token, ...Token[]]) {
   switch (tokens[0].pos) {
@@ -18,9 +18,44 @@ export function verb(tokens: [TokenVerb, ...Token[]]) {
 export function noun(tokens: [TokenNoun, ...Token[]]) {
   const [n1, ...ns] = tokens;
 
+  const n1Morae = [...morae(n1.surface)];
+  const n1Syllables = [...syllables(n1.surface)];
+
   // This isn't a compound.
   if (!ns.length) {
-    return n1.accent;
+    if (n1.accent !== null) {
+      return n1.accent;
+    }
+
+    // TODO: if n1 has a null accent, we can use the AAR (2.1) or LSR (2.3)
+    // rules to guess.
+    // FIXME: bail out here if it's not a loan word, as Section 2 is all about
+    // them.
+
+    // [2.4] Unaccented loanwords
+    if (n1Morae.length === 4) {
+      if (n1Syllables.slice(-2).map(weighSyllable).join('') === 'LL') {
+        const lastTwoMorae = n1Syllables.flat(1).slice(-2);
+        // [16] Unaccented loanwords: four mora words with two final light
+        // non-epenthetic syllables
+        if (!lastTwoMorae.some(hasEpentheticVowel)) {
+          return 0;
+        }
+
+        // [17] The presence of an epenthetic vowel results in accented words
+        if (lastTwoMorae.some(hasEpentheticVowel)) {
+          // There will be an accent, normally two morae back from the final
+          // epenthetic vowel, but not in the case of 17h. Could perhaps say two
+          // back from the second epenthetic vowel (if there are two or more),
+          // but otherwise the first.
+          return null;
+        }
+
+        // TODO: 18-20
+      }
+    }
+
+    return null;
   }
 
   // We only have a rule for N1 + N2.
@@ -29,7 +64,6 @@ export function noun(tokens: [TokenNoun, ...Token[]]) {
   }
 
   const n2 = ns[0];
-  const n1Morae = [...morae(n1.surface)];
   const n2Morae = [...morae(n2.surface)];
 
   // [4.1] TODO: solve monomoraic and bimoraic.
