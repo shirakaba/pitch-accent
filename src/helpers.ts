@@ -22,17 +22,19 @@ export function* syllables(surface: string) {
     }
 
     if (syllable) {
-      yield syllable;
+      yield [...morae(syllable)];
     }
 
     syllable = grapheme;
   }
 
   if (syllable) {
-    yield syllable;
+    yield [...morae(syllable)];
   }
 }
 
+// TODO: We may find reason to include whether each mora is light or heavy, so
+// may in future return an object rather than just a string.
 // TODO: could generalise to reuse logic from syllables
 export function* morae(surface: string) {
   const graphemes = [...surface];

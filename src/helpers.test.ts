@@ -83,64 +83,92 @@ describe('Helpers', () => {
 
   describe('syllables', () => {
     test('simple', () => {
-      expect([...syllables('シ')]).toEqual(['シ']);
-      expect([...syllables('シシ')]).toEqual(['シ', 'シ']);
-      expect([...syllables('シシシ')]).toEqual(['シ', 'シ', 'シ']);
-      expect([...syllables('さる')]).toEqual(['さ', 'る']);
-      expect([...syllables('ながさき')]).toEqual(['な', 'が', 'さ', 'き']);
-      expect([...syllables('コタモ')]).toEqual(['コ', 'タ', 'モ']);
-      expect([...syllables('キソク')]).toEqual(['キ', 'ソ', 'ク']);
+      expect([...syllables('シ')]).toEqual([['シ']]);
+      expect([...syllables('シシ')]).toEqual([['シ'], ['シ']]);
+      expect([...syllables('シシシ')]).toEqual([['シ'], ['シ'], ['シ']]);
+      expect([...syllables('さる')]).toEqual([['さ'], ['る']]);
+      expect([...syllables('ながさき')]).toEqual([
+        ['な'],
+        ['が'],
+        ['さ'],
+        ['き'],
+      ]);
+      expect([...syllables('コタモ')]).toEqual([['コ'], ['タ'], ['モ']]);
+      expect([...syllables('キソク')]).toEqual([['キ'], ['ソ'], ['ク']]);
     });
     test('sokuon', () => {
-      expect([...syllables('かっぱ')]).toEqual(['かっ', 'ぱ']);
-      expect([...syllables('カッタ')]).toEqual(['カッ', 'タ']);
-      expect([...syllables('にっぽん')]).toEqual(['にっ', 'ぽん']);
-      expect([...syllables('ニッポン')]).toEqual(['ニッ', 'ポン']);
+      expect([...syllables('かっぱ')]).toEqual([['か', 'っ'], ['ぱ']]);
+      expect([...syllables('カッタ')]).toEqual([['カ', 'ッ'], ['タ']]);
+      expect([...syllables('にっぽん')]).toEqual([
+        ['に', 'っ'],
+        ['ぽ', 'ん'],
+      ]);
+      expect([...syllables('ニッポン')]).toEqual([
+        ['ニ', 'ッ'],
+        ['ポ', 'ン'],
+      ]);
       expect([...syllables('がっこうしんぶん')]).toEqual([
-        'がっ',
-        'こう',
-        'しん',
-        'ぶん',
+        ['が', 'っ'],
+        ['こ', 'う'],
+        ['し', 'ん'],
+        ['ぶ', 'ん'],
       ]);
       expect([...syllables('ガッコーシンブン')]).toEqual([
-        'ガッ',
-        'コー',
-        'シン',
-        'ブン',
+        ['ガ', 'ッ'],
+        ['コ', 'ー'],
+        ['シ', 'ン'],
+        ['ブ', 'ン'],
       ]);
-      expect([...syllables('コッモ')]).toEqual(['コッ', 'モ']);
+      expect([...syllables('コッモ')]).toEqual([['コ', 'ッ'], ['モ']]);
     });
     test('stops', () => {
-      expect([...syllables('かんそく')]).toEqual(['かん', 'そ', 'く']);
-      expect([...syllables('にほん')]).toEqual(['に', 'ほん']);
-      expect([...syllables('かん')]).toEqual(['かん']);
-      expect([...syllables('コンモ')]).toEqual(['コン', 'モ']);
+      expect([...syllables('かんそく')]).toEqual([
+        ['か', 'ん'],
+        ['そ'],
+        ['く'],
+      ]);
+      expect([...syllables('にほん')]).toEqual([['に'], ['ほ', 'ん']]);
+      expect([...syllables('かん')]).toEqual([['か', 'ん']]);
+      expect([...syllables('コンモ')]).toEqual([['コ', 'ン'], ['モ']]);
     });
     test('vowels', () => {
-      expect([...syllables('オ')]).toEqual(['オ']);
-      expect([...syllables('かあさん')]).toEqual(['かあ', 'さん']);
-      expect([...syllables('おおさか')]).toEqual(['おお', 'さ', 'か']);
-      expect([...syllables('とうきょう')]).toEqual(['とう', 'きょう']);
-      expect([...syllables('にいさん')]).toEqual(['にい', 'さん']);
+      expect([...syllables('オ')]).toEqual([['オ']]);
+      expect([...syllables('かあさん')]).toEqual([
+        ['か', 'あ'],
+        ['さ', 'ん'],
+      ]);
+      expect([...syllables('おおさか')]).toEqual([
+        ['お', 'お'],
+        ['さ'],
+        ['か'],
+      ]);
+      expect([...syllables('とうきょう')]).toEqual([
+        ['と', 'う'],
+        ['きょ', 'う'],
+      ]);
+      expect([...syllables('にいさん')]).toEqual([
+        ['に', 'い'],
+        ['さ', 'ん'],
+      ]);
       // TODO: find out whether this should really be 2.
-      expect([...syllables('かお')]).toEqual(['かお']);
+      expect([...syllables('かお')]).toEqual([['か', 'お']]);
     });
     test('chouonpu', () => {
-      expect([...syllables('オー')]).toEqual(['オー']);
-      expect([...syllables('コーモ')]).toEqual(['コー', 'モ']);
+      expect([...syllables('オー')]).toEqual([['オ', 'ー']]);
+      expect([...syllables('コーモ')]).toEqual([['コ', 'ー'], ['モ']]);
     });
     test('combiners', () => {
       expect([...syllables('チョコレート')]).toEqual([
-        'チョ',
-        'コ',
-        'レー',
-        'ト',
+        ['チョ'],
+        ['コ'],
+        ['レ', 'ー'],
+        ['ト'],
       ]);
       expect([...syllables('がっきゅうしんぶん')]).toEqual([
-        'がっ',
-        'きゅう',
-        'しん',
-        'ぶん',
+        ['が', 'っ'],
+        ['きゅ', 'う'],
+        ['し', 'ん'],
+        ['ぶ', 'ん'],
       ]);
     });
   });

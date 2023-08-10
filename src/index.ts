@@ -67,8 +67,7 @@ export function noun(tokens: [TokenNoun, ...Token[]]) {
     return null;
   }
 
-  const n2SyllablesIntoMorae = n2Syllables.map((s) => [...morae(s)]);
-  const n2MoraeUpToLastSyllable = n2SyllablesIntoMorae.slice(0, -1).flat();
+  const n2MoraeUpToLastSyllable = n2Syllables.slice(0, -1).flat();
 
   // [4.2] Long N2
   // [23] N2 Initial accent
