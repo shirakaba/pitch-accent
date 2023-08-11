@@ -27,13 +27,37 @@ export function noun(tokens: [TokenNoun, ...Token[]]) {
       return n1.accent;
     }
 
+    // TODO: this rule overlaps with [2.4] (you can have four-mora words that
+    // are also trisyllabic), so we should figure out the best order to run this
+    // rule (or even run it in two conditional branches).
+    // [3] Stochastic skews in native and Sino-Japanese nouns
+    if (n1Syllables.length === 3) {
+      // This rule is accurate 95%+ of the time for nouns that are of
+      // Sino-Japanese origin or are loanwords. It's accurate 59% of the time
+      // for words of native Japanese origin, which is better than nothing.
+      const antepenultimateIndex = 3;
+      let moraIndex = 0;
+      for (const syllable of n1Syllables.reverse()) {
+        for (let i = 0; i < syllable.length; i++, moraIndex++) {
+          if (moraIndex === antepenultimateIndex) {
+            // We've reached the syllable containing the antepenultimate mora.
+            // To my understanding of "[2.2] Syllables as accent-bearing
+            // units", the downstep is on the mora occupying the head position
+            // of the syllable (so may slip to the pre-antepenultimate mora if
+            // the syllable has multiple morae).
+            return n1Morae.length - moraIndex - syllable.length;
+          }
+        }
+      }
+
+      return null;
+    }
+
     // TODO: if n1 has a null accent, we can use the AAR (2.1) or LSR (2.3)
     // rules to guess.
-    // FIXME: bail out here if it's not a loan word, as Section 2 is all about
-    // them.
 
     // [2.4] Unaccented loanwords
-    if (n1Morae.length === 4) {
+    if (n1.origin === 'loanword' && n1Morae.length === 4) {
       if (n1Syllables.slice(-2).map(weighSyllable).join('') === 'LL') {
         const lastTwoMorae = n1Syllables.flat(1).slice(-2);
         // [16] Unaccented loanwords: four mora words with two final light
@@ -41,6 +65,8 @@ export function noun(tokens: [TokenNoun, ...Token[]]) {
         if (!lastTwoMorae.some(hasEpentheticVowel)) {
           return 0;
         }
+
+        // TODO: apply [2.4] here if it's trisyllabic.
 
         // [17] The presence of an epenthetic vowel results in accented words
         if (lastTwoMorae.some(hasEpentheticVowel)) {
@@ -151,6 +177,7 @@ interface TokenCommon {
 
 interface TokenNoun extends TokenCommon {
   pos: 'noun';
+  origin?: 'native' | 'sino-japanese' | 'loanword';
 }
 interface TokenVerb extends TokenCommon {
   pos: 'verb';
