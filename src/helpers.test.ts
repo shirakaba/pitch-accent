@@ -36,7 +36,7 @@ describe('Helpers', () => {
         'ン',
       ]);
     });
-    test('stops', () => {
+    test('coda nasals', () => {
       expect([...morae('さんぽ')]).toEqual(['さ', 'ん', 'ぽ']);
       expect([...morae('かんそく')]).toEqual(['か', 'ん', 'そ', 'く']);
     });
@@ -49,7 +49,7 @@ describe('Helpers', () => {
     test('chouonpu', () => {
       expect([...morae('アパート')]).toEqual(['ア', 'パ', 'ー', 'ト']);
     });
-    test('combiners', () => {
+    test('sutegana', () => {
       expect([...morae('がっきゅう')]).toEqual(['が', 'っ', 'きゅ', 'う']);
       expect([...morae('チョコレート')]).toEqual([
         'チョ',
@@ -121,7 +121,7 @@ describe('Helpers', () => {
       ]);
       expect([...syllables('コッモ')]).toEqual([['コ', 'ッ'], ['モ']]);
     });
-    test('stops', () => {
+    test('coda nasals', () => {
       expect([...syllables('かんそく')]).toEqual([
         ['か', 'ん'],
         ['そ'],
@@ -157,7 +157,7 @@ describe('Helpers', () => {
       expect([...syllables('オー')]).toEqual([['オ', 'ー']]);
       expect([...syllables('コーモ')]).toEqual([['コ', 'ー'], ['モ']]);
     });
-    test('combiners', () => {
+    test('sutegana', () => {
       expect([...syllables('チョコレート')]).toEqual([
         ['チョ'],
         ['コ'],

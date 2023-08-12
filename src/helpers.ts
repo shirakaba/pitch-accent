@@ -1,8 +1,8 @@
 // TODO: Assess whether any more 捨て仮名 should be included.
 // https://ja.wikipedia.org/wiki/捨て仮名
-const combiners = /[ぁぃぅぇぉゃゅょァィゥェォャュョ]/;
+const sutegana = /[ぁぃぅぇぉゃゅょァィゥェォャュョ]/;
 const vowels = /[あいうえおアイウエオ]/;
-const stops = /[んン]/;
+const codaNasal = /[んン]/;
 const sokuon = /[っッ]/;
 
 export function* syllables(surface: string) {
@@ -13,9 +13,9 @@ export function* syllables(surface: string) {
     if (
       grapheme === 'ー' ||
       sokuon.test(grapheme) ||
-      stops.test(grapheme) ||
       vowels.test(grapheme) ||
-      combiners.test(grapheme)
+      codaNasal.test(grapheme) ||
+      sutegana.test(grapheme)
     ) {
       syllable += grapheme;
       continue;
@@ -56,7 +56,7 @@ export function* morae(surface: string) {
 
   let mora = '';
   for (const grapheme of graphemes) {
-    if (combiners.test(grapheme)) {
+    if (sutegana.test(grapheme)) {
       mora += grapheme;
       continue;
     }
