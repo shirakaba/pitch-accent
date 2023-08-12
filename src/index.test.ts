@@ -33,8 +33,8 @@ describe('2.4 Unaccented loanwords', () => {
       solve([{ surface: 'アメリカ', pos: 'noun', origin: 'loanword' }])
     ).toBe(0);
 
-    // FIXME: this is detected as [['イ'], ['タ'], ['リ', 'ア']], so gets
-    // picked up by [3]. Is // 'リア' one or two syllables?
+    // FIXME: this is detected as [['イ'], ['タ'], ['リ', 'ア']], so gets picked
+    // picked up by [3]. Is 'リア' one or two syllables?
     // expect(
     //   solve([{ surface: 'イタリア', pos: 'noun', origin: 'loanword' }])
     // ).toBe(0);
@@ -43,9 +43,9 @@ describe('2.4 Unaccented loanwords', () => {
       solve([{ surface: 'メキシコ', pos: 'noun', origin: 'loanword' }])
     ).toBe(0);
 
-    // FIXME: this is detected as two syllables: [['ア', 'イ', 'オ'], ['ワ']], so
-    // we have no applicable rules in the four-mora branch. How many syllables
-    // is it really?
+    // FIXME: this is detected as [['アイ', 'オ', 'ワ']], so gets picked up by
+    // [3], which then assigns it to position 1. Maybe we should just always
+    // run the four-mora rule before the three-syllable one?
     // expect(
     //   solve([{ surface: 'アイオワ', pos: 'noun', origin: 'loanword' }])
     // ).toBe(0);

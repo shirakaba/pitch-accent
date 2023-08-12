@@ -4,6 +4,7 @@ const sutegana = /[ぁぃぅぇぉゃゅょァィゥェォャュョ]/;
 const vowels = /[あいうえおアイウエオ]/;
 const codaNasal = /[んン]/;
 const sokuon = /[っッ]/;
+const endsInVowel = /.[あいうえおアイウエオ]$/;
 
 export function* syllables(surface: string) {
   const graphemes = [...surface];
@@ -13,8 +14,9 @@ export function* syllables(surface: string) {
     if (
       grapheme === 'ー' ||
       sokuon.test(grapheme) ||
-      vowels.test(grapheme) ||
       codaNasal.test(grapheme) ||
+      // Prevents "アイオワ" from becoming [['ア', 'イ', 'オ'], ['ワ']].
+      (vowels.test(grapheme) && !endsInVowel.test(syllable)) ||
       sutegana.test(grapheme)
     ) {
       syllable += grapheme;
