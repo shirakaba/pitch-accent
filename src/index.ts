@@ -1,4 +1,10 @@
-import { hasEpentheticVowel, morae, syllables, weighSyllable } from './helpers';
+import {
+  getHeadMoraPosition,
+  hasEpentheticVowel,
+  morae,
+  syllables,
+  weighSyllable,
+} from './helpers';
 
 export function solve(tokens: [Token, ...Token[]]) {
   switch (tokens[0].pos) {
@@ -18,12 +24,12 @@ export function verb(tokens: [TokenVerb, ...Token[]]) {
 export function noun(tokens: [TokenNoun, ...Token[]]) {
   const [n1, ...ns] = tokens;
 
-  const n1Morae = [...morae(n1.surface)];
   const n1Syllables = [...syllables(n1.surface)];
+  const n1Morae = n1Syllables.flat(1);
 
   // This isn't a compound.
   if (!ns.length) {
-    if (n1.accent !== null) {
+    if (n1.accent !== undefined) {
       return n1.accent;
     }
 
@@ -35,22 +41,8 @@ export function noun(tokens: [TokenNoun, ...Token[]]) {
       // This rule is accurate 95%+ of the time for nouns that are of
       // Sino-Japanese origin or are loanwords. It's accurate 59% of the time
       // for words of native Japanese origin, which is better than nothing.
-      const antepenultimateIndex = 3;
-      let moraIndex = 0;
-      for (const syllable of n1Syllables.reverse()) {
-        for (let i = 0; i < syllable.length; i++, moraIndex++) {
-          if (moraIndex === antepenultimateIndex) {
-            // We've reached the syllable containing the antepenultimate mora.
-            // To my understanding of "[2.2] Syllables as accent-bearing
-            // units", the downstep is on the mora occupying the head position
-            // of the syllable (so may slip to the pre-antepenultimate mora if
-            // the syllable has multiple morae).
-            return n1Morae.length - moraIndex - syllable.length;
-          }
-        }
-      }
-
-      return null;
+      const antepenultimateIndex = 2;
+      return getHeadMoraPosition(antepenultimateIndex, n1Syllables);
     }
 
     // TODO: if n1 has a null accent, we can use the AAR (2.1) or LSR (2.3)
@@ -66,15 +58,20 @@ export function noun(tokens: [TokenNoun, ...Token[]]) {
           return 0;
         }
 
-        // TODO: apply [2.4] here if it's trisyllabic.
-
         // [17] The presence of an epenthetic vowel results in accented words
         if (lastTwoMorae.some(hasEpentheticVowel)) {
           // There will be an accent, normally two morae back from the final
-          // epenthetic vowel, but not in the case of 17h. Could perhaps say two
-          // back from the second epenthetic vowel (if there are two or more),
-          // but otherwise the first.
-          return null;
+          // epenthetic vowel. Fails in the case of 17h, but generally works.
+          const lastEpentheticVowelIndexFromEnd =
+            n1Morae.length -
+            1 -
+            n1Morae.map(hasEpentheticVowel).lastIndexOf(true);
+          if (lastEpentheticVowelIndexFromEnd === -1) {
+            return null;
+          }
+
+          const expectedMoraIndexFromEnd = lastEpentheticVowelIndexFromEnd + 2;
+          return getHeadMoraPosition(expectedMoraIndexFromEnd, n1Syllables);
         }
 
         // TODO: 18-20
@@ -98,7 +95,7 @@ export function noun(tokens: [TokenNoun, ...Token[]]) {
   }
 
   // Need data to be sure.
-  if (n2.accent === null) {
+  if (n2.accent === undefined) {
     return null;
   }
 
@@ -172,7 +169,7 @@ interface TokenCommon {
    * The pitch accent for the token. If multiple are possible (e.g. "0,3"), take
    * the most likely.
    */
-  accent: number | null;
+  accent?: number;
 }
 
 interface TokenNoun extends TokenCommon {

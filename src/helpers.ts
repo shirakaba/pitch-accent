@@ -72,3 +72,30 @@ export function* morae(surface: string) {
     yield mora;
   }
 }
+
+/**
+ * Given a mora index from end, if the mora is deficient (non-head), finds the
+ * syllable that that mora is in and returns the position of the head mora from
+ * that syllable .
+ */
+export function getHeadMoraPosition(
+  indexFromEnd: number,
+  syllables: string[][]
+) {
+  const morae = syllables.flat(1);
+
+  let moraIndex = 0;
+  for (const syllable of syllables.reverse()) {
+    for (let i = 0; i < syllable.length; i++, moraIndex++) {
+      if (moraIndex === indexFromEnd) {
+        // We've reached the syllable containing the expected mora. To my
+        // understanding of "[2.2] Syllables as accent-bearing units", the
+        // downstep must be on the mora occupying the head position of the
+        // syllable. We add one to convert from zero-index to one-index.
+        return morae.length - moraIndex - (syllable.length - i) + 1;
+      }
+    }
+  }
+
+  return null;
+}
