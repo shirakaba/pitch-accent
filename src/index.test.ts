@@ -215,3 +215,9 @@ describe('4 Compound accent', () => {
     });
   });
 });
+
+describe('5 Verbs and adjectives', () => {
+  test('(27) Verb accent', () => {
+    // TODO: implement
+  });
+});
