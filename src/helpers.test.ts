@@ -175,30 +175,30 @@ describe('Helpers', () => {
 
   describe('getHeadMoraPosition', () => {
     test('should find the head mora within a syllable', () => {
-      // index from end:   ５    ４      ３    ２      １      ０
+      // index:           -５   -４     -３   -２     -１     -０
       // mora position:    １    ２      ３    ４      ５      ６
       const pineapple = [['パ', 'イ'], ['ナ', 'ッ'], ['プ'], ['ル']];
 
-      // 'ル' (endIndex 0) is head, so return its position (6)
-      expect(getHeadMoraPosition(0, pineapple)).toEqual(6);
+      // 'ル' (index -0) is head, so return its position (6)
+      expect(getHeadMoraPosition(-0, pineapple)).toEqual(6);
 
-      // 'プ' (endIndex 1) is head, so return its position (5)
-      expect(getHeadMoraPosition(1, pineapple)).toEqual(5);
+      // 'プ' (index -1) is head, so return its position (5)
+      expect(getHeadMoraPosition(-1, pineapple)).toEqual(5);
 
-      // 'ッ' (endIndex 2) is non-head, so return the head position 'ナ' (3)
-      expect(getHeadMoraPosition(2, pineapple)).toEqual(3);
+      // 'ッ' (index -2) is non-head, so return the head position 'ナ' (3)
+      expect(getHeadMoraPosition(-2, pineapple)).toEqual(3);
 
-      // 'ナ' (endIndex 3) is head, so return its position (3)
-      expect(getHeadMoraPosition(3, pineapple)).toEqual(3);
+      // 'ナ' (index -3) is head, so return its position (3)
+      expect(getHeadMoraPosition(-3, pineapple)).toEqual(3);
 
-      // 'イ' (endIndex 4) is non-head, so return the head position 'パ' (3)
-      expect(getHeadMoraPosition(4, pineapple)).toEqual(1);
+      // 'イ' (index -4) is non-head, so return the head position 'パ' (3)
+      expect(getHeadMoraPosition(-4, pineapple)).toEqual(1);
 
-      // 'パ' (endIndex 5) is head, so return its position (1)
-      expect(getHeadMoraPosition(5, pineapple)).toEqual(1);
+      // 'パ' (index -5) is head, so return its position (1)
+      expect(getHeadMoraPosition(-5, pineapple)).toEqual(1);
 
-      // undefined (endIndex 6) is out-of-bounds, so return null
-      expect(getHeadMoraPosition(6, pineapple)).toEqual(null);
+      // undefined (index -6) is out-of-bounds, so return null
+      expect(getHeadMoraPosition(-6, pineapple)).toEqual(null);
     });
   });
 });

@@ -41,7 +41,7 @@ export function noun(tokens: [TokenNoun, ...Token[]]) {
       // This rule is accurate 95%+ of the time for nouns that are of
       // Sino-Japanese origin or are loanwords. It's accurate 59% of the time
       // for words of native Japanese origin, which is better than nothing.
-      const antepenultimateIndex = 2;
+      const antepenultimateIndex = -2;
       return getHeadMoraPosition(antepenultimateIndex, n1Syllables);
     }
 
@@ -70,8 +70,8 @@ export function noun(tokens: [TokenNoun, ...Token[]]) {
             return null;
           }
 
-          const expectedMoraIndexFromEnd = lastEpentheticVowelIndexFromEnd + 2;
-          return getHeadMoraPosition(expectedMoraIndexFromEnd, n1Syllables);
+          const expectedMoraIndex = lastEpentheticVowelIndexFromEnd + 2;
+          return getHeadMoraPosition(-expectedMoraIndex, n1Syllables);
         }
 
         // TODO: 18-20

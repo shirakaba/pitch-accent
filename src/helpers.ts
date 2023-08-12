@@ -74,20 +74,19 @@ export function* morae(surface: string) {
 }
 
 /**
- * Given a mora index from end, if the mora is deficient (non-head), finds the
- * syllable that that mora is in and returns the position of the head mora from
- * that syllable .
+ * Given a mora index, if the mora is deficient (non-head), finds the syllable
+ * that that mora is in and returns the position of the head mora.
+ *
+ * Negative indices are supported, and count from the end.
  */
-export function getHeadMoraPosition(
-  indexFromEnd: number,
-  syllables: string[][]
-) {
+export function getHeadMoraPosition(index: number, syllables: string[][]) {
   const morae = syllables.flat(1);
+  const indexAbs = Math.abs(index);
 
   let moraIndex = 0;
-  for (const syllable of syllables.reverse()) {
+  for (const syllable of isPositive(index) ? syllables : syllables.reverse()) {
     for (let i = 0; i < syllable.length; i++, moraIndex++) {
-      if (moraIndex === indexFromEnd) {
+      if (moraIndex === indexAbs) {
         // We've reached the syllable containing the expected mora. To my
         // understanding of "[2.2] Syllables as accent-bearing units", the
         // downstep must be on the mora occupying the head position of the
@@ -98,4 +97,9 @@ export function getHeadMoraPosition(
   }
 
   return null;
+
+  // Handles -0 sanely
+  function isPositive(n: number) {
+    return 1 / (n * 0) === 1 / 0;
+  }
 }
