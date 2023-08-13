@@ -22,7 +22,7 @@ export interface TokenVerb extends TokenCommon {
    * "godan" is also known as Group I or C-final.
    * "ichidan" is also known as Group II or V-final.
    */
-  group: 'godan' | 'ichidan';
+  group: 'godan' | 'ichidan' | 'suru' | 'kuru';
   /**
    * The dictionary form of the surface.
    */
