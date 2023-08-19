@@ -40,10 +40,8 @@ yarn install
 yarn start
 ```
 
-# Licence
+# Legal
 
 `pitch-accent` is copyrighted free software by Jamie Birch, and is released under any of the BSD, LGPL, or GPL licences (see the files LICENCE-BSD.txt, LICENCE-LGPL.txt, and LICENCE-GPL.txt, respectively).
 
-Algorithms used in this program are based on [@PhoneticsKeio](https://twitter.com/PhoneticsKeio)'s excellent review:
-
-> Kawahara, Shigeto. "11 The phonology of Japanese accent". Handbook of Japanese Phonetics and Phonology, edited by Haruo Kubozono, Berlin, München, Boston: De Gruyter Mouton, 2015, pp. 445-492. https://doi.org/10.1515/9781614511984.445
+See `sources.md` for source data used.

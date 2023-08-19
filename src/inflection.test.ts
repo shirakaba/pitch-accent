@@ -118,6 +118,57 @@ describe('getPitchForInflectedWord', () => {
           ])
         ).toEqual(2);
       });
+
+      test('causative', () => {
+        expect(
+          getPitchForInflectedWord([
+            {
+              surface: 'さ',
+              group: 'suru',
+              type: 'irrealis',
+              accent: 0,
+            },
+            {
+              surface: 'せる',
+              type: 'causative',
+            },
+          ])
+        ).toEqual(0);
+      });
+
+      test('passive', () => {
+        expect(
+          getPitchForInflectedWord([
+            {
+              surface: 'さ',
+              group: 'suru',
+              type: 'irrealis',
+              accent: 0,
+            },
+            {
+              surface: 'れる',
+              type: 'passive',
+            },
+          ])
+        ).toEqual(0);
+      });
+
+      test('causative-passive', () => {
+        expect(
+          getPitchForInflectedWord([
+            {
+              surface: 'さ',
+              group: 'suru',
+              type: 'irrealis',
+              accent: 0,
+            },
+            {
+              surface: 'せられる',
+              type: 'passive',
+            },
+          ])
+        ).toEqual(0);
+      });
     });
   });
 
@@ -236,6 +287,57 @@ describe('getPitchForInflectedWord', () => {
             },
           ])
         ).toEqual(2);
+      });
+
+      test('causative', () => {
+        expect(
+          getPitchForInflectedWord([
+            {
+              surface: 'こ',
+              group: 'kuru',
+              type: 'irrealis',
+              accent: 1,
+            },
+            {
+              surface: 'させる',
+              type: 'causative',
+            },
+          ])
+        ).toEqual(3);
+      });
+
+      test('passive', () => {
+        expect(
+          getPitchForInflectedWord([
+            {
+              surface: 'こ',
+              group: 'kuru',
+              type: 'irrealis',
+              accent: 1,
+            },
+            {
+              surface: 'られる',
+              type: 'passive',
+            },
+          ])
+        ).toEqual(3);
+      });
+
+      test('causative-passive', () => {
+        expect(
+          getPitchForInflectedWord([
+            {
+              surface: 'こ',
+              group: 'kuru',
+              type: 'irrealis',
+              accent: 1,
+            },
+            {
+              surface: 'させられる',
+              type: 'passive',
+            },
+          ])
+        ).toEqual(5);
       });
     });
   });
@@ -477,6 +579,57 @@ describe('getPitchForInflectedWord', () => {
             ])
           ).toEqual(2);
         });
+
+        test('causative', () => {
+          expect(
+            getPitchForInflectedWord([
+              {
+                surface: 'み',
+                group: 'ichidan',
+                type: 'irrealis',
+                accent: 1,
+              },
+              {
+                surface: 'させる',
+                type: 'causative',
+              },
+            ])
+          ).toEqual(3);
+        });
+
+        test('passive', () => {
+          expect(
+            getPitchForInflectedWord([
+              {
+                surface: 'み',
+                group: 'ichidan',
+                type: 'irrealis',
+                accent: 1,
+              },
+              {
+                surface: 'られる',
+                type: 'passive',
+              },
+            ])
+          ).toEqual(3);
+        });
+
+        test('causative-passive', () => {
+          expect(
+            getPitchForInflectedWord([
+              {
+                surface: 'み',
+                group: 'ichidan',
+                type: 'irrealis',
+                accent: 1,
+              },
+              {
+                surface: 'させられる',
+                type: 'passive',
+              },
+            ])
+          ).toEqual(5);
+        });
       });
     });
 
@@ -713,6 +866,57 @@ describe('getPitchForInflectedWord', () => {
             ])
           ).toEqual(4);
         });
+
+        test('causative', () => {
+          expect(
+            getPitchForInflectedWord([
+              {
+                surface: 'はじめ',
+                group: 'ichidan',
+                type: 'irrealis',
+                accent: 0,
+              },
+              {
+                surface: 'させる',
+                type: 'causative',
+              },
+            ])
+          ).toEqual(0);
+        });
+
+        test('passive', () => {
+          expect(
+            getPitchForInflectedWord([
+              {
+                surface: 'はじめ',
+                group: 'ichidan',
+                type: 'irrealis',
+                accent: 0,
+              },
+              {
+                surface: 'られる',
+                type: 'passive',
+              },
+            ])
+          ).toEqual(0);
+        });
+
+        test('causative-passive', () => {
+          expect(
+            getPitchForInflectedWord([
+              {
+                surface: 'はじめ',
+                group: 'ichidan',
+                type: 'irrealis',
+                accent: 0,
+              },
+              {
+                surface: 'させられる',
+                type: 'passive',
+              },
+            ])
+          ).toEqual(0);
+        });
       });
     });
   });
@@ -944,7 +1148,7 @@ describe('getPitchForInflectedWord', () => {
                 surface: 'つくろ',
                 group: 'godan',
                 type: 'volitional',
-                accent: 0,
+                accent: 2,
               },
               {
                 surface: 'う',
@@ -952,6 +1156,57 @@ describe('getPitchForInflectedWord', () => {
               },
             ])
           ).toEqual(3);
+        });
+
+        test('causative', () => {
+          expect(
+            getPitchForInflectedWord([
+              {
+                surface: 'つくら',
+                group: 'godan',
+                type: 'irrealis',
+                accent: 2,
+              },
+              {
+                surface: 'せる',
+                type: 'causative',
+              },
+            ])
+          ).toEqual(4);
+        });
+
+        test('passive', () => {
+          expect(
+            getPitchForInflectedWord([
+              {
+                surface: 'つくら',
+                group: 'godan',
+                type: 'irrealis',
+                accent: 2,
+              },
+              {
+                surface: 'れる',
+                type: 'passive',
+              },
+            ])
+          ).toEqual(4);
+        });
+
+        test('causative-passive', () => {
+          expect(
+            getPitchForInflectedWord([
+              {
+                surface: 'つくら',
+                group: 'godan',
+                type: 'irrealis',
+                accent: 2,
+              },
+              {
+                surface: 'せられる',
+                type: 'passive',
+              },
+            ])
+          ).toEqual(6);
         });
       });
     });
@@ -1187,6 +1442,57 @@ describe('getPitchForInflectedWord', () => {
               },
             ])
           ).toEqual(1);
+        });
+
+        test('causative', () => {
+          expect(
+            getPitchForInflectedWord([
+              {
+                surface: 'いわ',
+                group: 'godan',
+                type: 'irrealis',
+                accent: 0,
+              },
+              {
+                surface: 'せる',
+                type: 'causative',
+              },
+            ])
+          ).toEqual(0);
+        });
+
+        test('passive', () => {
+          expect(
+            getPitchForInflectedWord([
+              {
+                surface: 'いわ',
+                group: 'godan',
+                type: 'irrealis',
+                accent: 0,
+              },
+              {
+                surface: 'れる',
+                type: 'passive',
+              },
+            ])
+          ).toEqual(0);
+        });
+
+        test('causative-passive', () => {
+          expect(
+            getPitchForInflectedWord([
+              {
+                surface: 'いわ',
+                group: 'godan',
+                type: 'irrealis',
+                accent: 0,
+              },
+              {
+                surface: 'せられる',
+                type: 'passive',
+              },
+            ])
+          ).toEqual(0);
         });
       });
     });

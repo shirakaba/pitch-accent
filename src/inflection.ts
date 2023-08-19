@@ -60,7 +60,14 @@ export function getPitchForInflectedWord(tokens: ConjugationToken[]) {
         return 0;
       }
 
-      // TODO: passive and causative.
+      // causative-passive is handled the same as passive.
+      // /させる (causative) 0
+      // /される (passive) 0
+      // /させられる (causative-passive) 0
+      if (second.type === 'causative' || second.type === 'passive') {
+        return 0;
+      }
+
       return null;
     }
 
@@ -107,7 +114,14 @@ export function getPitchForInflectedWord(tokens: ConjugationToken[]) {
         return 1;
       }
 
-      // TODO: passive and causative.
+      // causative-passive is handled the same as passive.
+      // こさせ\る (causative)
+      // こられ\る (passive)
+      // こさせられ\る (causative-passive)
+      if (second.type === 'causative' || second.type === 'passive') {
+        return getHeadMoraPosition(-1, coupletSyllables) ?? 1;
+      }
+
       return null;
     }
 
@@ -159,7 +173,33 @@ export function getPitchForInflectedWord(tokens: ConjugationToken[]) {
           : 0;
       }
 
-      // We don't have rules for passive and causative.
+      // causative-passive is handled the same as passive.
+      //
+      // godan (group I):
+      // - accented:
+      //   - passive: つくられ\る
+      //   - causative: つくらせ\る
+      //   - causative-passive: つくらせられ\る
+      // - accentless:
+      //   - passive: /あそばれる
+      //   - causative: /あそばせる
+      //   - causative-passive: /あそばせられる
+      //
+      // ichidan (group II):
+      // - accented:
+      //   - passive: しめられ\る
+      //   - causative: しめさせ\る
+      //   - causative-passive: しめさせられ\る
+      // - accentless:
+      //   - passive: /あけられる
+      //   - causative: /あけさせる
+      //   - causative-passive: /あけさせられる
+      if (second.type === 'passive' || second.type === 'causative') {
+        return first.accent
+          ? getHeadMoraPosition(-1, coupletSyllables) ?? 1
+          : 0;
+      }
+
       return null;
     }
 
