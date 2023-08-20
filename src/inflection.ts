@@ -1,4 +1,4 @@
-import { getHeadMoraPosition, syllables } from './helpers';
+import { getHeadMoraPosition, morae, syllables } from './helpers';
 
 // TODO: Create adapter for UniDic
 // TODO: Support long words like:
@@ -7,13 +7,104 @@ import { getHeadMoraPosition, syllables } from './helpers';
 // TODO: See NHK for 命令形 and 可能表現
 
 export function getPitchForInflectedWord(tokens: ConjugationToken[]) {
+  const surface = tokens.map((t) => t.surface).join('');
+  const allSyllables = [...syllables(surface)];
+  const allMorae = allSyllables.flat(1).join('');
+
   const first = tokens[0];
-  if (!first) {
+  if (!first || !isBase(first)) {
     return null;
   }
 
-  if (!isBase(first)) {
-    return null;
+  const [penultimate, last] = tokens.slice(-2);
+  // FIXME: starting to rethink asking for part of speech, as the definition of
+  // token boundaries differs between literature and IPADIC/UniDic. Also
+  // inconvenient. Maybe we only need the base form? Once it starts chaining
+  // into longer forms, it's all relatively predictable and pattern-friendly.
+  if (penultimate && last?.type === 'other') {
+    // NHK 1.1.a
+    if (
+      (penultimate.type === 'conjunctive' && last.surface === 'に') ||
+      (penultimate.type === 'euphonic' &&
+        ['た', 'て'].includes(last.surface)) ||
+      // FIXME: NHK refers specifically to attributive or terminal (which are
+      // identical nowadays), but MeCab UniDic does not reliably pick a
+      // consistent one of the two, so sometimes we miss matches. We might as
+      // well just match on either.
+      (penultimate.type === 'attributive' &&
+        ['だけ', 'ほど'].includes(last.surface))
+    ) {
+      const auxiliaryMorae = [...morae(last.surface)].length;
+      return first.accent
+        ? getHeadMoraPosition(-(auxiliaryMorae + 1), allSyllables) ?? 1
+        : 0;
+    }
+
+    if (first.accent !== undefined) {
+      // NHK 1.1.b
+      if (
+        (penultimate.type === 'conjunctive' && last.surface === 'は') ||
+        // FIXME: NHK refers specifically to attributive or terminal (which are
+        // identical nowadays), but MeCab UniDic does not reliably pick a
+        // consistent one of the two, so sometimes we miss matches. We might as
+        // well just match on either.
+        (penultimate.type === 'terminal' &&
+          [
+            'が',
+            'から',
+            'けれど',
+            'けれども', // FIXME: handle as two separate tokens: けれど・も
+            'し',
+            'って',
+            'と', // TODO: may also be heiban
+            'なら',
+          ].includes(last.surface)) ||
+        (penultimate.type === 'attributive' &&
+          ['しか', 'のだ', 'ので', 'のに'].includes(last.surface)) ||
+        (penultimate.type === 'hypothetical' && last.surface === 'ば')
+      ) {
+        const auxiliaryMorae = [...morae(last.surface)].length;
+        return (
+          getHeadMoraPosition(
+            first.accent ? -(auxiliaryMorae + 1) : -auxiliaryMorae,
+            allSyllables
+          ) ?? 1
+        );
+      }
+
+      // NHK 1.2.a
+      if (
+        (penultimate.type === 'terminal' &&
+          // FIXME: handle as two separate tokens: そう・だ
+          // FIXME: handle as two separate tokens: みたい・だ
+          ['そうだ', 'みたいだ', 'らしい'].includes(last.surface)) ||
+        (penultimate.type === 'attributive' &&
+          [
+            'ぐらい',
+            'くらい',
+            'どころか', // FIXME: handle as two separate particles: どころ・か
+            'ばかり',
+            'まで',
+            'ようだ', // FIXME: handle as auxiliary + auxiliary verb: よう・だ
+            'より',
+          ].includes(last.surface))
+      ) {
+        const auxiliaryAccent = last.surface === 'らしい' ? 2 : 1;
+
+        // TODO: Need to figure out how to represent two downsteps.
+        // TODO: くらい・ぐらい and どころか also have an alternative pattern.
+        return first.accent ? null : allMorae.length + auxiliaryAccent;
+      }
+
+      // NHK 1.2.b
+      if (
+        penultimate.type === 'terminal' &&
+        ['だろう', 'でしょう'].includes(penultimate.surface)
+      ) {
+        // TODO: Need to figure out how to represent two downsteps.
+        return null;
+      }
+    }
   }
 
   // If it's a dictionary-form verb with no downstream particles to influence
@@ -355,6 +446,12 @@ type Affix = { surface: string } & (
     }
   | {
       type: 'polite'; // √
+    }
+  | {
+      /**
+       * Things like よう, だ, らしい. Still working on these categories.
+       */
+      type: 'other';
     }
 );
 

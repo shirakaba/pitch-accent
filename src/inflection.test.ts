@@ -630,6 +630,43 @@ describe('getPitchForInflectedWord', () => {
             ])
           ).toEqual(5);
         });
+
+        describe('accentless auxiliaries', () => {
+          describe('simple', () => {
+            test('〜に', () => {
+              expect(
+                getPitchForInflectedWord([
+                  {
+                    surface: 'み',
+                    group: 'ichidan',
+                    type: 'conjunctive',
+                    accent: 1,
+                  },
+                  {
+                    surface: 'に',
+                    type: 'other',
+                  },
+                ])
+              ).toEqual(1);
+            });
+            test('〜た', () => {
+              expect(
+                getPitchForInflectedWord([
+                  {
+                    surface: 'み',
+                    group: 'ichidan',
+                    type: 'euphonic',
+                    accent: 1,
+                  },
+                  {
+                    surface: 'た',
+                    type: 'other',
+                  },
+                ])
+              ).toEqual(1);
+            });
+          });
+        });
       });
     });
 

@@ -156,6 +156,7 @@ describe('Helpers', () => {
     test('chouonpu', () => {
       expect([...syllables('オー')]).toEqual([['オ', 'ー']]);
       expect([...syllables('コーモ')]).toEqual([['コ', 'ー'], ['モ']]);
+      expect([...syllables('キョー')]).toEqual([['キョ', 'ー']]);
     });
     test('sutegana', () => {
       expect([...syllables('チョコレート')]).toEqual([
@@ -174,7 +175,22 @@ describe('Helpers', () => {
   });
 
   describe('getHeadMoraPosition', () => {
-    test('should find the head mora within a syllable', () => {
+    test('should find the head mora within a syllable, for chouonpu', () => {
+      // index:         -２    -１    -０
+      // mora position:  １     ２     ３
+      const shared = [['キョ', 'ー'], ['シ']];
+
+      // 'シ' (index -0) is head, so return its position (3)
+      expect(getHeadMoraPosition(-0, shared)).toEqual(3);
+
+      // 'ー' (index -1) is non-head, so return the head position (1)
+      expect(getHeadMoraPosition(-1, shared)).toEqual(1);
+
+      // 'キョ' (index -2) is head, so return its position (1)
+      expect(getHeadMoraPosition(-2, shared)).toEqual(1);
+    });
+
+    test('should find the head mora within a syllable, for consecutive vowels and tsutegana', () => {
       // index:           -５   -４     -３   -２     -１     -０
       // mora position:    １    ２      ３    ４      ５      ６
       const pineapple = [['パ', 'イ'], ['ナ', 'ッ'], ['プ'], ['ル']];

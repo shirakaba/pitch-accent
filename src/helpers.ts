@@ -86,7 +86,9 @@ export function getHeadMoraPosition(index: number, syllables: string[][]) {
   const indexAbs = Math.abs(index);
 
   let moraIndex = 0;
-  for (const syllable of isPositive(index) ? syllables : syllables.reverse()) {
+  for (const syllable of isPositive(index)
+    ? syllables
+    : [...syllables].reverse()) {
     for (let i = 0; i < syllable.length; i++, moraIndex++) {
       if (moraIndex === indexAbs) {
         // We've reached the syllable containing the expected mora. To my
