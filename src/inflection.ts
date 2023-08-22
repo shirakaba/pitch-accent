@@ -1,72 +1,52 @@
 import { getHeadMoraPosition, morae, syllables } from './helpers';
 
-// TODO: Create adapter for UniDic
 // TODO: Support long words like:
 // 教えたりしなければならない
 // 食べさせられたくなかった
 // TODO: See NHK for 命令形 and 可能表現
 
-export function getPitchForInflectedWord(tokens: ConjugationToken[]) {
-  const surface = tokens.map((t) => t.surface).join('');
-  const allSyllables = [...syllables(surface)];
+export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
+  const surfacePron = tokens.map((t) => t.surfacePron).join('');
+  const [first, ...trailing] = tokens;
+  const [second, third] = trailing;
+  const trailingSurface = trailing.map((token) => token.surface).join('');
+  const allSyllables = [...syllables(surfacePron)];
   const allMorae = allSyllables.flat(1).join('');
 
-  const first = tokens[0];
   if (!first || !isBase(first)) {
     return null;
   }
 
   const [penultimate, last] = tokens.slice(-2);
-  // FIXME: starting to rethink asking for part of speech, as the definition of
-  // token boundaries differs between literature and IPADIC/UniDic. Also
-  // inconvenient. Maybe we only need the base form? Once it starts chaining
-  // into longer forms, it's all relatively predictable and pattern-friendly.
-  if (penultimate && last?.type === 'other') {
-    // NHK 1.1.a
-    if (
-      (penultimate.type === 'conjunctive' && last.surface === 'に') ||
-      (penultimate.type === 'euphonic' &&
-        ['た', 'て'].includes(last.surface)) ||
-      // FIXME: NHK refers specifically to attributive or terminal (which are
-      // identical nowadays), but MeCab UniDic does not reliably pick a
-      // consistent one of the two, so sometimes we miss matches. We might as
-      // well just match on either.
-      (penultimate.type === 'attributive' &&
-        ['だけ', 'ほど'].includes(last.surface))
-    ) {
-      const auxiliaryMorae = [...morae(last.surface)].length;
-      return first.accent
-        ? getHeadMoraPosition(-(auxiliaryMorae + 1), allSyllables) ?? 1
-        : 0;
-    }
-
+  // if (penultimate && last?.type === 'other') {
+  if (penultimate && last) {
     if (first.accent !== undefined) {
+      // NHK 1.1.a
+      if (
+        endsWithに(tokens) ||
+        endsWithたorだ(tokens) ||
+        endsWithだけorほど(tokens)
+      ) {
+        const auxiliaryMorae = [...morae(last.surface)].length;
+        return isAccented(first)
+          ? getHeadMoraPosition(-(auxiliaryMorae + 1), allSyllables) ?? 1
+          : 0;
+      }
+
       // NHK 1.1.b
       if (
-        (penultimate.type === 'conjunctive' && last.surface === 'は') ||
-        // FIXME: NHK refers specifically to attributive or terminal (which are
-        // identical nowadays), but MeCab UniDic does not reliably pick a
-        // consistent one of the two, so sometimes we miss matches. We might as
-        // well just match on either.
-        (penultimate.type === 'terminal' &&
-          [
-            'が',
-            'から',
-            'けれど',
-            'けれども', // FIXME: handle as two separate tokens: けれど・も
-            'し',
-            'って',
-            'と', // TODO: may also be heiban
-            'なら',
-          ].includes(last.surface)) ||
-        (penultimate.type === 'attributive' &&
-          ['しか', 'のだ', 'ので', 'のに'].includes(last.surface)) ||
-        (penultimate.type === 'hypothetical' && last.surface === 'ば')
+        endsWithは(tokens) ||
+        endsWithけれども(tokens) ||
+        // TODO: と may also be heiban
+        endsWithがetc(tokens) ||
+        endsWithしか(tokens) ||
+        endsWithのだetc(tokens) ||
+        endsWithば(tokens)
       ) {
         const auxiliaryMorae = [...morae(last.surface)].length;
         return (
           getHeadMoraPosition(
-            first.accent ? -(auxiliaryMorae + 1) : -auxiliaryMorae,
+            isAccented(first) ? -(auxiliaryMorae + 1) : -auxiliaryMorae,
             allSyllables
           ) ?? 1
         );
@@ -74,33 +54,21 @@ export function getPitchForInflectedWord(tokens: ConjugationToken[]) {
 
       // NHK 1.2.a
       if (
-        (penultimate.type === 'terminal' &&
-          // FIXME: handle as two separate tokens: そう・だ
-          // FIXME: handle as two separate tokens: みたい・だ
-          ['そうだ', 'みたいだ', 'らしい'].includes(last.surface)) ||
-        (penultimate.type === 'attributive' &&
-          [
-            'ぐらい',
-            'くらい',
-            'どころか', // FIXME: handle as two separate particles: どころ・か
-            'ばかり',
-            'まで',
-            'ようだ', // FIXME: handle as auxiliary + auxiliary verb: よう・だ
-            'より',
-          ].includes(last.surface))
+        endsWithそうだorみたいだ(tokens) ||
+        endsWithらしい(tokens) ||
+        endsWithどころか(tokens) ||
+        endsWithようだ(tokens) ||
+        endsWithぐらいetc(tokens)
       ) {
         const auxiliaryAccent = last.surface === 'らしい' ? 2 : 1;
 
         // TODO: Need to figure out how to represent two downsteps.
         // TODO: くらい・ぐらい and どころか also have an alternative pattern.
-        return first.accent ? null : allMorae.length + auxiliaryAccent;
+        return isAccented(first) ? null : allMorae.length + auxiliaryAccent;
       }
 
       // NHK 1.2.b
-      if (
-        penultimate.type === 'terminal' &&
-        ['だろう', 'でしょう'].includes(penultimate.surface)
-      ) {
+      if (endsWithだろうorでしょう(tokens)) {
         // TODO: Need to figure out how to represent two downsteps.
         return null;
       }
@@ -109,69 +77,97 @@ export function getPitchForInflectedWord(tokens: ConjugationToken[]) {
 
   // If it's a dictionary-form verb with no downstream particles to influence
   // accent, return whatever accent the dictionary has on record.
-  if (first.type === 'terminal') {
+  if (isTerminal(first)) {
     if (tokens.length > 1) {
       // TODO: handle downstream particles.
       return null;
     }
 
-    return first.accent ?? null;
+    // TODO: support returning multiple possible acccents
+    return first.accent === undefined
+      ? null
+      : parseAccent(first.accent)?.[0] ?? null;
   }
 
-  const second = tokens[1];
+  // volitional
+  // Works for suru, kuru, ichidan, and godan, whether accented or not.
+  if (first.cForm === '意志推量形') {
+    if (tokens.length > 1) {
+      // TODO: handle downstream tokens like 食べようぜ.
+      return null;
+    }
+
+    return getHeadMoraPosition(-1, allSyllables) ?? 1;
+  }
+
   // TODO: handle second token being something else, like a particle.
-  if (!second || !isAffix(second)) {
+  // if (!second || !isAffix(second)) {
+  if (!second) {
     return null;
   }
 
-  // TODO: handle potential form, passive, causative, imperative... all the
-  // forms on OJAD, really.
+  const coupletSyllables = [
+    ...syllables(`${first.surfacePron}${second.surfacePron}`),
+  ];
+  const tripletSyllables = [
+    ...syllables(
+      `${first.surfacePron}${second.surfacePron}${third?.surfacePron ?? ''}`
+    ),
+  ];
 
-  const coupletSyllables = [...syllables(`${first.surface}${second.surface}`)];
-
-  if (first.group === 'suru') {
-    if (first.type === 'conjunctive') {
-      if (second.type === 'polite') {
-        return getHeadMoraPosition(-1, coupletSyllables) ?? 1;
-      }
-
-      return null;
+  // conjunctive
+  // Works for suru, kuru, ichidan, and godan, whether accented or not.
+  if (isRenyoukeiOrIdentical(first)) {
+    // polite
+    if (second.cType === '助動詞-マス') {
+      return getHeadMoraPosition(-1, coupletSyllables) ?? 1;
     }
 
-    if (first.type === 'volitional') {
-      if (second.type === 'volitional') {
-        return getHeadMoraPosition(-1, coupletSyllables) ?? 1;
-      }
+    // Fall through
+  }
 
-      return null;
-    }
+  // TODO: handle potential form, imperative... all the forms on OJAD, really.
 
-    if (first.type === 'irrealis') {
-      if (second.type === 'negative') {
+  if (isSuruGroup(first)) {
+    // irrealis (shi and sa)
+    if (['未然形-一般', '未然形-サ'].includes(first.cForm)) {
+      // negative
+      if (isAttributive(second) && second.surface === 'ない') {
         return 0;
       }
 
+      // MeCab may tokenise these forms a few different ways, so easiest just to
+      // check the surface.
+      // TODO: support further inflections.
+      //
       // causative-passive is handled the same as passive.
-      // /させる (causative) 0
-      // /される (passive) 0
-      // /させられる (causative-passive) 0
-      if (second.type === 'causative' || second.type === 'passive') {
+      // /さ・せる (causative) 0
+      // /さ・れる (passive) 0
+      // /さ・せ・られる (causative-passive) 0
+      const trailingSurface = trailing.map((token) => token.surface).join('');
+      if (['せる', 'れる', 'せられる'].includes(trailingSurface)) {
+        return 0;
+      }
+      return null;
+    }
+
+    // euphonic
+    if (isOnbinkeiOrIdentical(first)) {
+      if (
+        tokens.length === 2 &&
+        // shita and shite
+        (endsWithたorだ(tokens) || endsWithてorで(tokens))
+      ) {
         return 0;
       }
 
       return null;
     }
 
-    if (first.type === 'euphonic') {
-      if (second.type === 'perfective' || second.type === 'te') {
-        return 0;
-      }
-
-      return null;
-    }
-
-    if (first.type === 'hypothetical') {
-      if (second.type === 'conditional') {
+    // hypothetical
+    if (first.cForm === '仮定形-一般') {
+      // conditional
+      if (second.surface === 'ば' && second.pos === '助詞,接続助詞') {
         return getHeadMoraPosition(-1, coupletSyllables) ?? 1;
       }
 
@@ -183,49 +179,48 @@ export function getPitchForInflectedWord(tokens: ConjugationToken[]) {
     return null;
   }
 
-  if (first.group === 'kuru') {
-    if (first.type === 'conjunctive') {
-      if (second.type === 'polite') {
-        return getHeadMoraPosition(-1, coupletSyllables) ?? 1;
-      }
-
-      return null;
-    }
-
-    if (first.type === 'volitional') {
-      if (second.type === 'volitional') {
-        return getHeadMoraPosition(-1, coupletSyllables) ?? 1;
-      }
-
-      return null;
-    }
-
-    if (first.type === 'irrealis') {
-      if (second.type === 'negative') {
+  if (isKuruGroup(first)) {
+    // irrealis
+    if (first.cForm === '未然形-一般') {
+      // negative
+      if (isAttributive(second) && second.surface === 'ない') {
         return 1;
       }
 
       // causative-passive is handled the same as passive.
-      // こさせ\る (causative)
-      // こられ\る (passive)
-      // こさせられ\る (causative-passive)
-      if (second.type === 'causative' || second.type === 'passive') {
-        return getHeadMoraPosition(-1, coupletSyllables) ?? 1;
+      // こ・させ\る (causative)
+      // こ・られ\る (passive)
+      // こ・させ・られ\る (causative-passive)
+      // if (second.lemma === 'せる' || second.lemma === 'られる') {
+      if (['させる', 'られる', 'させられる'].includes(trailingSurface)) {
+        // TODO: deal with arbitrary number of tokens
+        const trailingSyllables =
+          trailingSurface === 'させられる'
+            ? tripletSyllables
+            : coupletSyllables;
+        return getHeadMoraPosition(-1, trailingSyllables) ?? 1;
       }
 
       return null;
     }
 
-    if (first.type === 'euphonic') {
-      if (second.type === 'perfective' || second.type === 'te') {
+    // euphonic
+    if (isOnbinkeiOrIdentical(first)) {
+      if (
+        tokens.length === 2 &&
+        // kita and kite
+        (endsWithたorだ(tokens) || endsWithてorで(tokens))
+      ) {
         return 1;
       }
 
       return null;
     }
 
-    if (first.type === 'hypothetical') {
-      if (second.type === 'conditional') {
+    // hypothetical
+    if (first.cForm === '仮定形-一般') {
+      // conditional
+      if (second.surface === 'ば' && second.pos === '助詞,接続助詞') {
         return getHeadMoraPosition(antepenultimateIndex, coupletSyllables) ?? 1;
       }
 
@@ -235,31 +230,17 @@ export function getPitchForInflectedWord(tokens: ConjugationToken[]) {
     return null;
   }
 
-  if (first.group === 'ichidan' || first.group === 'godan') {
-    if (first.type === 'conjunctive') {
-      if (second.type === 'polite') {
-        return getHeadMoraPosition(-1, coupletSyllables) ?? 1;
-      }
-
-      return null;
-    }
-
-    if (first.type === 'volitional') {
-      if (second.type === 'volitional') {
-        return getHeadMoraPosition(-1, coupletSyllables) ?? 1;
-      }
-
-      return null;
-    }
-
+  if (isIchidan(first) || isGodan(first)) {
     if (first.accent === undefined) {
       // Need accent data for the remaining cases.
       return null;
     }
 
-    if (first.type === 'irrealis') {
-      if (second.type === 'negative') {
-        return first.accent
+    // irrealis
+    if (first.cForm === '未然形-一般') {
+      // negative
+      if (isAttributive(second) && second.surface === 'ない') {
+        return isAccented(first)
           ? getHeadMoraPosition(antepenultimateIndex, coupletSyllables) ?? 1
           : 0;
       }
@@ -268,48 +249,66 @@ export function getPitchForInflectedWord(tokens: ConjugationToken[]) {
       //
       // godan (group I):
       // - accented:
-      //   - passive: つくられ\る
-      //   - causative: つくらせ\る
-      //   - causative-passive: つくらせられ\る
+      //   - passive: つくら・れ\る
+      //   - causative: つくら・せ\る
+      //   - causative-passive: つくら・せ・られ\る
       // - accentless:
-      //   - passive: /あそばれる
-      //   - causative: /あそばせる
-      //   - causative-passive: /あそばせられる
+      //   - passive: /あそば・れる
+      //   - causative: /あそば・せる
+      //   - causative-passive: /あそば・せ・られる
       //
       // ichidan (group II):
       // - accented:
-      //   - passive: しめられ\る
-      //   - causative: しめさせ\る
-      //   - causative-passive: しめさせられ\る
+      //   - passive: しめ・られ\る
+      //   - causative: しめ・させ\る
+      //   - causative-passive: しめ・させ・られ\る
       // - accentless:
-      //   - passive: /あけられる
-      //   - causative: /あけさせる
-      //   - causative-passive: /あけさせられる
-      if (second.type === 'passive' || second.type === 'causative') {
-        return first.accent
-          ? getHeadMoraPosition(-1, coupletSyllables) ?? 1
+      //   - passive: /あけ・られる
+      //   - causative: /あけ・させる
+      //   - causative-passive: /あけ・させ・られる
+      if (
+        // If this gives false positives, could do something smarter and not
+        // drop (sa) and (ra)
+        ['せる', 'れる', 'せられる'].some((p) => trailingSurface.endsWith(p))
+      ) {
+        // TODO: deal with arbitrary number of tokens
+        const trailingSyllables = trailingSurface.endsWith('せられる')
+          ? tripletSyllables
+          : coupletSyllables;
+
+        return isAccented(first)
+          ? getHeadMoraPosition(-1, trailingSyllables) ?? 1
           : 0;
       }
 
       return null;
     }
 
-    if (first.type === 'euphonic') {
+    // euphonic
+    if (isOnbinkeiOrIdentical(first)) {
+      if (tokens.length !== 2) {
+        // TODO: support more tokens
+        return null;
+      }
+
       // > [for godan] in the gerundive and past tense forms, no shift to the
       // > antepenultimate position occurs.
-      if (second.type === 'perfective') {
-        return first.accent
+
+      // perfective
+      if (endsWithたorだ(tokens)) {
+        return isAccented(first)
           ? getHeadMoraPosition(
-              first.group === 'ichidan' ? antepenultimateIndex : -1,
+              isIchidan(first) ? antepenultimateIndex : -1,
               coupletSyllables
             ) ?? 1
           : 0;
       }
 
-      if (second.type === 'te') {
-        return first.accent
+      // gerundive (te form)
+      if (endsWithてorで(tokens)) {
+        return isAccented(first)
           ? getHeadMoraPosition(
-              first.group === 'ichidan' ? antepenultimateIndex : -1,
+              isIchidan(first) ? antepenultimateIndex : -1,
               coupletSyllables
             ) ?? 1
           : 0;
@@ -318,11 +317,13 @@ export function getPitchForInflectedWord(tokens: ConjugationToken[]) {
       return null;
     }
 
-    if (first.type === 'hypothetical') {
-      if (second.type === 'conditional') {
+    // hypothetical
+    if (first.cForm === '仮定形-一般') {
+      // conditional
+      if (second.surface === 'ば' && second.pos === '助詞,接続助詞') {
         return (
           getHeadMoraPosition(
-            first.accent ? antepenultimateIndex : -1,
+            isAccented(first) ? antepenultimateIndex : -1,
             coupletSyllables
           ) ?? 1
         );
@@ -338,121 +339,420 @@ export function getPitchForInflectedWord(tokens: ConjugationToken[]) {
   return null;
 }
 
-function isBase(token: ConjugationToken): token is Base {
-  return baseTypes.has(token.type);
+function isBase(token: UniDicToken): token is Base {
+  return (
+    token.pos === '動詞,非自立可能,*,*' ||
+    token.pos === '動詞,一般,*,*' ||
+    token.pos === '形容詞,一般,*,*'
+  );
 }
-function isAffix(token: ConjugationToken): token is Affix {
-  return affixTypes.has(token.type);
+
+function isIchidan(token: UniDicToken) {
+  return token.cType.includes('一段');
+}
+function isGodan(token: UniDicToken) {
+  return token.cType.includes('五段');
+}
+function isSuruGroup(token: UniDicToken) {
+  return token.cType === 'サ行変格';
+}
+function isKuruGroup(token: UniDicToken) {
+  return token.cType === 'カ行変格';
+}
+function isAccented(token: UniDicToken) {
+  if (token.accent === undefined) {
+    throw new Error('Expected accent to be defined');
+  }
+
+  const accents = parseAccent(token.accent);
+  if (!accents) {
+    return false;
+  }
+
+  return accents.some((accent) => accent > 0);
+}
+function parseAccent(accent: string) {
+  const accents = accent
+    .split(',')
+    .map((value) => parseInt(value))
+    .filter((value) => !isNaN(value));
+
+  return accents.length ? (accents as [number, ...number[]]) : null;
 }
 
-type ConjugationToken = Base | Affix;
+/**
+ * We match both 'attributive' and 'terminal' as they're identical and MeCab
+ * often chooses the wrong one.
+ */
+function isTerminal(token: UniDicToken) {
+  return ['終止形-一般', '連体形-一般'].includes(token.cForm);
+}
 
-const baseTypes = new Set([
-  'terminal',
-  'attributive',
-  'hypothetical',
-  'potential',
-  'imperative',
-  'irrealis',
-  'volitional',
-  'conjunctive',
-  'euphonic',
-]);
-const affixTypes = new Set([
-  'conditional',
-  'potential',
-  'imperative',
-  'negative',
-  'passive',
-  'causative',
-  'volitional',
-  'conjunctive',
-  'perfective',
-  'te',
-  'polite',
-]);
+/**
+ * We match both 'attributive' and 'terminal' as they're identical and MeCab
+ * often chooses the wrong one.
+ */
+function isAttributive(token: UniDicToken) {
+  return isTerminal(token);
+}
 
-type Base = {
-  // TODO: should distinguish between surface and pronunciation. It's actually
-  // pronunciation we work with, though surface may help with special-casing.
+/**
+ * We match both 'euphonic' and 'conjunctive' in non-godan verbs as they're
+ * identical and MeCab often chooses the wrong one.
+ */
+function isOnbinkeiOrIdentical(token: UniDicToken) {
+  if (token.cForm === '連用形-撥音便') {
+    return true;
+  }
+
+  return isGodan(token)
+    ? ['連用形-促音便', '連用形-イ音便'].includes(token.cForm)
+    : token.cForm === '連用形-一般';
+}
+
+/**
+ * We match both 'euphonic' and 'conjunctive' in non-godan verbs as they're
+ * identical and MeCab often chooses the wrong one.
+ */
+function isRenyoukeiOrIdentical(token: UniDicToken) {
+  return isGodan(token)
+    ? token.cForm === '連用形-一般'
+    : ['連用形-撥音便', '連用形-一般'].includes(token.cForm);
+}
+
+export function parseToUniDicToken(str: string): UniDicToken {
+  const [
+    surface,
+    pos1,
+    pos2,
+    pos3,
+    pos4,
+    cType,
+    cForm,
+    _lForm,
+    lemma,
+    _orth,
+    pron,
+    _orthBase,
+    _pronBase,
+    _goshu,
+    _iType,
+    _iForm,
+    _fType,
+    _fForm,
+    _iConType,
+    _fConType,
+    _type,
+    _kana,
+    _kanaBase,
+    _form,
+    _formBase,
+    aType,
+    _aConType,
+    _aModType,
+    _weight4,
+    _weight5,
+  ] = str.split(',');
+
+  return {
+    surface,
+    pos: [pos1, pos2, pos3, pos4].join(','),
+    pos1,
+    pos2,
+    pos3,
+    pos4,
+    cType,
+    cForm,
+    surfacePron: pron,
+    lemma,
+    accent: aType,
+  };
+}
+
+export interface UniDicToken {
   surface: string;
+  pos: string;
+  pos1: string;
+  pos2: string;
+  pos3: string;
+  pos4: string;
+  cType: string;
+  cForm: string;
+  surfacePron: string;
   /**
-   * "godan" is also known as Group I or C-final.
-   * "ichidan" is also known as Group II or V-final.
+   * @example
+   * "為る"
+   * "*"
    */
-  group: 'godan' | 'ichidan' | 'kuru' | 'suru';
-  accent?: number;
-} & (
-  | {
-      type: 'terminal';
-    }
-  | {
-      type: 'attributive';
-    }
-  | {
-      type: 'hypothetical';
-    }
-  | {
-      type: 'potential';
-    }
-  | {
-      type: 'imperative';
-    }
-  | {
-      type: 'irrealis';
-    }
-  | {
-      type: 'volitional';
-    }
-  | {
-      type: 'conjunctive';
-    }
-  | {
-      type: 'euphonic';
-    }
-);
+  lemma: string;
+  /**
+   * @example
+   * "2"
+   * "2,3"
+   * "*"
+   */
+  accent: string;
+}
 
-// √: rule available in Shigeto Kawahara
-type Affix = { surface: string } & (
-  | {
-      type: 'conditional'; // √
-    }
-  | {
-      type: 'potential';
-    }
-  | {
-      type: 'imperative';
-    }
-  | {
-      type: 'negative'; // √
-    }
-  | {
-      type: 'passive';
-    }
-  | {
-      type: 'causative';
-    }
-  | {
-      type: 'volitional'; // √
-    }
-  | {
-      type: 'conjunctive';
-    }
-  | {
-      type: 'perfective'; // √
-    }
-  | {
-      type: 'te'; // √
-    }
-  | {
-      type: 'polite'; // √
-    }
-  | {
-      /**
-       * Things like よう, だ, らしい. Still working on these categories.
-       */
-      type: 'other';
-    }
-);
+interface UniDicTokenVerb extends UniDicToken {
+  pos1: '動詞';
+  pos2: '一般';
+  pos3: '*';
+  pos4: '*';
+}
+
+interface UniDicTokenAdjectiveI extends UniDicToken {
+  pos1: '形容詞';
+  pos2: '一般';
+  pos3: '*';
+  pos4: '*';
+}
+
+interface UniDicTokenAdjectiveNa extends UniDicToken {
+  pos1: '形状詞';
+  pos2: '一般';
+  pos3: '*';
+  pos4: '*';
+}
+
+function endsWithに(tokens: ReadonlyArray<UniDicToken>) {
+  const [penultimate, last] = tokens.slice(-2);
+  if (!penultimate || !last) {
+    return false;
+  }
+
+  return (
+    // Requiring 動詞,一般,*,* would disqualify した (動詞,非自立可能,*,*)
+    // first.pos === '動詞,一般,*,*' &&
+    isRenyoukeiOrIdentical(penultimate) &&
+    last.surface === 'に' &&
+    last.pos === '助詞,格助詞,*,*'
+  );
+}
+
+function endsWithたorだ(tokens: ReadonlyArray<UniDicToken>) {
+  if (tokens.length !== 2) {
+    // We have other rules for longer words involving katta and nakatta.
+    // TODO: check whether ~ta applies for ~sareta, ~rareta.
+    return false;
+  }
+
+  const [first, second] = tokens.slice(0, 2);
+  if (!first || !second) {
+    return false;
+  }
+
+  return (
+    // Requiring 動詞,一般,*,* would disqualify した (動詞,非自立可能,*,*)
+    // first.pos === '動詞,一般,*,*' &&
+    isOnbinkeiOrIdentical(first) &&
+    ['た', 'だ'].includes(second.surface) &&
+    second.pos === '助動詞,*,*,*'
+  );
+}
+
+function endsWithてorで(tokens: ReadonlyArray<UniDicToken>) {
+  if (tokens.length !== 2) {
+    // We have other rules for longer words involving kute.
+    // TODO: check whether ~ta applies for ~sarete, ~rarete.
+    return false;
+  }
+
+  const [first, second] = tokens.slice(0, 2);
+  if (!first || !second) {
+    return false;
+  }
+
+  return (
+    isOnbinkeiOrIdentical(first) &&
+    ['て', 'で'].includes(second.surface) &&
+    second.pos === '助詞,接続助詞,*,*'
+  );
+}
+
+function endsWithだけorほど(tokens: ReadonlyArray<UniDicToken>) {
+  const [penultimate, last] = tokens.slice(-2);
+  if (!penultimate || !last) {
+    return false;
+  }
+
+  return (
+    isAttributive(penultimate) &&
+    ['だけ', 'ほど'].includes(last.surface) &&
+    last.pos === '助詞,副助詞,*,*'
+  );
+}
+
+function endsWithは(tokens: ReadonlyArray<UniDicToken>) {
+  const [penultimate, last] = tokens.slice(-2);
+  if (!penultimate || !last) {
+    return false;
+  }
+
+  return (
+    isRenyoukeiOrIdentical(penultimate) &&
+    last.surface === 'は' &&
+    last.pos === '助詞,係助詞,*,*'
+  );
+}
+
+function endsWithけれども(tokens: ReadonlyArray<UniDicToken>) {
+  const [terminus, keredo, mo] = tokens.slice(-3);
+  if (!terminus || !keredo || !mo) {
+    return false;
+  }
+
+  return (
+    isTerminal(terminus) &&
+    keredo.surface === 'けれど' &&
+    keredo.pos === '助詞,接続助詞,*,*' &&
+    mo.surface === 'も' &&
+    mo.pos === '助詞,係助詞,*,*'
+  );
+}
+
+function endsWithがetc(tokens: ReadonlyArray<UniDicToken>) {
+  const [penultimate, last] = tokens.slice(-2);
+  if (!penultimate || !last) {
+    return false;
+  }
+
+  return (
+    isTerminal(penultimate) &&
+    ['が', 'から', 'けれど', 'し', 'って', 'と', 'なら'].includes(last.surface)
+    // TODO: figure out pos. It varies between って and けれど.
+    // && last.pos === '助詞,接続助詞,*,*'
+  );
+}
+
+function endsWithしか(tokens: ReadonlyArray<UniDicToken>) {
+  const [penultimate, last] = tokens.slice(-2);
+  if (!penultimate || !last) {
+    return false;
+  }
+
+  return (
+    isAttributive(penultimate) &&
+    last.surface === 'しか' &&
+    last.pos === '助詞,副助詞,*,*'
+  );
+}
+
+function endsWithのだetc(tokens: ReadonlyArray<UniDicToken>) {
+  const [terminus, no, final] = tokens.slice(-3);
+  if (!terminus || !no || !final) {
+    return false;
+  }
+
+  return (
+    isAttributive(terminus) &&
+    no.surface === 'の' &&
+    no.pos === '助詞,準体助詞,*,*' &&
+    ((['だ', 'で'].includes(final.surface) && final.pos === '助動詞,*,*,*') ||
+      (final.surface === 'に' && final.pos === '助詞,格助詞,*,*'))
+  );
+}
+
+function endsWithば(tokens: ReadonlyArray<UniDicToken>) {
+  const [penultimate, last] = tokens.slice(-2);
+  if (!penultimate || !last) {
+    return false;
+  }
+
+  return (
+    penultimate.cForm === '仮定形-一般' &&
+    last.surface === 'ば' &&
+    last.pos === '助詞,接続助詞,*,*'
+  );
+}
+
+function endsWithそうだorみたいだ(tokens: ReadonlyArray<UniDicToken>) {
+  const [terminus, penultimate, da] = tokens.slice(-3);
+  if (!terminus || !penultimate || !da) {
+    return false;
+  }
+
+  return (
+    isTerminal(terminus) &&
+    ((penultimate.surface === 'そう' &&
+      penultimate.pos === '名詞,助動詞語幹,*,*') ||
+      (penultimate.surface === 'みたい' &&
+        penultimate.pos === '形状詞,助動詞語幹,*,*')) &&
+    da.surface === 'だ' &&
+    da.pos === '助動詞,*,*,*'
+  );
+}
+
+function endsWithらしい(tokens: ReadonlyArray<UniDicToken>) {
+  const [penultimate, last] = tokens.slice(-2);
+  if (!penultimate || !last) {
+    return false;
+  }
+
+  return (
+    isTerminal(penultimate) &&
+    last.surface === 'らしい' &&
+    last.pos === '接尾辞,形容詞的,*,*'
+  );
+}
+
+function endsWithどころか(tokens: ReadonlyArray<UniDicToken>) {
+  const [terminus, dokoro, ka] = tokens.slice(-3);
+  if (!terminus || !dokoro || !ka) {
+    return false;
+  }
+
+  return (
+    isAttributive(terminus) &&
+    dokoro.surface === 'どころ' &&
+    dokoro.pos === '助詞,副助詞,*,*' &&
+    ka.surface === 'か' &&
+    ka.pos === '助詞,副助詞,*,*'
+  );
+}
+
+function endsWithようだ(tokens: ReadonlyArray<UniDicToken>) {
+  const [terminus, penultimate, da] = tokens.slice(-3);
+  if (!terminus || !penultimate || !da) {
+    return false;
+  }
+
+  return (
+    isAttributive(terminus) &&
+    penultimate.surface === 'よう' &&
+    penultimate.pos === '形状詞,助動詞語幹,*,*' &&
+    da.surface === 'だ' &&
+    da.pos === '助動詞,*,*,*'
+  );
+}
+
+function endsWithぐらいetc(tokens: ReadonlyArray<UniDicToken>) {
+  const [penultimate, last] = tokens.slice(-2);
+  if (!penultimate || !last) {
+    return false;
+  }
+
+  return (
+    isAttributive(penultimate) &&
+    ((['ぐらい', 'くらい', 'ばかり', 'まで'].includes(last.surface) &&
+      last.pos === '助詞,副助詞,*,*') ||
+      (last.surface === 'より' && last.pos === '助詞,格助詞,*,*'))
+  );
+}
+
+function endsWithだろうorでしょう(tokens: ReadonlyArray<UniDicToken>) {
+  const [penultimate, last] = tokens.slice(-2);
+  if (!penultimate || !last) {
+    return false;
+  }
+
+  return (
+    isTerminal(penultimate) &&
+    ['だろう', 'でしょう'].includes(last.surface) &&
+    last.pos === '助動詞,*,*,*'
+  );
+}
+
+type Base = UniDicTokenVerb | UniDicTokenAdjectiveI | UniDicTokenAdjectiveNa;
 
 const antepenultimateIndex = -2;
