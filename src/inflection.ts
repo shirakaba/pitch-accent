@@ -8,7 +8,7 @@ import { getHeadMoraPosition, morae, syllables } from './helpers';
 export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
   const surfacePron = tokens.map((t) => t.surfacePron).join('');
   const [first, ...trailing] = tokens;
-  const [second, third] = trailing;
+  const [second, third, fourth] = trailing;
   const trailingSurface = trailing.map((token) => token.surface).join('');
   const allSyllables = [...syllables(surfacePron)];
   const allMorae = allSyllables.flat(1).join('');
@@ -279,8 +279,8 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
 
           // It's causative-passive in a more deeply inflected form.
 
-          // TODO: handle further inflected forms like te/ta/nai.
-          // Need to look into rules for mashita, etc.
+          // TODO: handle te/ta/nai, which we have StackExchange answers for.
+          // TODO: think aobut mashita, etc.
 
           return null;
         }
@@ -296,8 +296,17 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
 
         // It's causative in a more deeply inflected form.
 
-        // TODO: handle further inflected forms like te/ta/nai.
-        // Need to look into rules for mashita, etc.
+        // From NHK appendix III-2:
+        if (isAttributive(third) && third.surface === 'ない') {
+          return isAccented(first)
+            ? getHeadMoraPosition(antepenultimateIndex, allSyllables) ?? 1
+            : 0;
+        }
+
+        // TODO: handle nakatta - at some point we should be able to recurse.
+        // TODO: handle further inflected forms like te/ta.
+        // Need to look into rules for masu, etc. Hoping to find the general
+        // case.
 
         return null;
       } else if (isPassive(second)) {
