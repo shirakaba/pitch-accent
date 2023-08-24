@@ -266,19 +266,51 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
       //   - passive: /あけ・られる
       //   - causative: /あけ・させる
       //   - causative-passive: /あけ・させ・られる
-      if (
-        // If this gives false positives, could do something smarter and not
-        // drop (sa) and (ra)
-        ['せる', 'れる', 'せられる'].some((p) => trailingSurface.endsWith(p))
-      ) {
-        // TODO: deal with arbitrary number of tokens
-        const trailingSyllables = trailingSurface.endsWith('せられる')
-          ? tripletSyllables
-          : coupletSyllables;
+      //
+      // Verbs in られる, させる, or させられる forms are ichidan verbs.
+      if (isCausative(second)) {
+        if (third && isPassive(third)) {
+          if (tokens.length <= 3) {
+            // It's simply causative-passive in dictionary form.
+            return isAccented(first)
+              ? getHeadMoraPosition(-1, allSyllables) ?? 1
+              : 0;
+          }
 
-        return isAccented(first)
-          ? getHeadMoraPosition(-1, trailingSyllables) ?? 1
-          : 0;
+          // It's causative-passive in a more deeply inflected form.
+
+          // TODO: handle further inflected forms like te/ta/nai.
+          // Need to look into rules for mashita, etc.
+
+          return null;
+        }
+
+        // It's just causative.
+
+        if (tokens.length <= 2) {
+          // It's simply causative in dictionary form.
+          return isAccented(first)
+            ? getHeadMoraPosition(-1, allSyllables) ?? 1
+            : 0;
+        }
+
+        // It's causative in a more deeply inflected form.
+
+        // TODO: handle further inflected forms like te/ta/nai.
+        // Need to look into rules for mashita, etc.
+
+        return null;
+      } else if (isPassive(second)) {
+        if (tokens.length <= 2) {
+          // It's simply passive in dictionary form.
+          return isAccented(first)
+            ? getHeadMoraPosition(-1, allSyllables) ?? 1
+            : 0;
+        }
+
+        // It's passive in a more deeply inflected form.
+
+        return null;
       }
 
       return null;
@@ -418,6 +450,17 @@ function isRenyoukeiOrIdentical(token: UniDicToken) {
   return isGodan(token)
     ? token.cForm === '連用形-一般'
     : ['連用形-撥音便', '連用形-一般'].includes(token.cForm);
+}
+
+function isCausative(token: UniDicToken) {
+  return (
+    ['せる', 'させる'].includes(token.lemma) && token.pos === '助動詞,*,*,*'
+  );
+}
+function isPassive(token: UniDicToken) {
+  return (
+    ['れる', 'られる'].includes(token.lemma) && token.pos === '助動詞,*,*,*'
+  );
 }
 
 export function parseToUniDicToken(str: string): UniDicToken {
