@@ -278,7 +278,6 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
             : 0;
         }
 
-
         // 〜（さ）せ・られ…
         if (third && isPassive(third)) {
           // 〜（さ）せ・られる
@@ -289,46 +288,19 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
           }
 
           // 〜（さ）せ・（ら）れ・【ない・た・て・ます・ろ…】
-          if (tokens.length === 4) {
-            // TODO:
-            // 〜（さ）せ・（ら）れ・ない
-            // 〜（さ）せ・（ら）れ・た
-            // 〜（さ）せ・（ら）れ・て
-            // 〜（さ）せ・（ら）れ・ます
-            // 〜（さ）せ・（ら）れ・ろ
-          }
-
-          // TODO: think about mashita, nakatta, etc.
-
-          return null;
+          const nextTokens = [
+            agglutinatePassive(agglutinateCausative(first, second), third),
+            ...tokens.slice(3),
+          ];
+          return getPitch(nextTokens);
         }
 
-        // iwa.se.nai
-        const agglutinatedLemma = `${first.surface}${second.lemma}`;
-        const agglutinatedSyllables = [...syllables(agglutinatedLemma)];
-        const agglutinatedToken: UniDicToken = {
-          surface: `${first.surface}${second.surface}`,
-          pos: first.pos,
-          pos1: first.pos1,
-          pos2: first.pos2,
-          pos3: first.pos3,
-          pos4: first.pos4,
-          // See:
-          // https://ja.wikipedia.org/wiki/下一段活用
-          // https://gist.github.com/fasiha/dd5eb7942c79571dd5895e05f27e8bb9
-          cType: '下一段-ラ行',
-          cForm: second.cForm,
-          surfacePron: `${first.surfacePron}${second.surfacePron}`,
-          lemma: agglutinatedLemma,
-          accent: (isAccented(first)
-            ? getHeadMoraPosition(-1, agglutinatedSyllables) ?? 1
-            : 0
-          ).toString(),
-          // TODO: track down any exceptions
-          agglutinatedFrom: [first, second],
-        };
-
-        const nextTokens = [agglutinatedToken, ...tokens.slice(2)];
+        // Rule based on examining examples in OJAD suffix search.
+        // 〜（さ）せ・【ない・た・て・ます・ろ…】
+        const nextTokens = [
+          agglutinateCausative(first, second),
+          ...tokens.slice(2),
+        ];
         return getPitch(nextTokens);
       }
 
@@ -342,18 +314,11 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
         }
 
         // 〜（ら）れ・【ない・た・て・ます・ろ…】
-        if (tokens.length === 3) {
-          // TODO:
-          // 〜（ら）れ・た
-          // 〜（ら）れ・て
-          // 〜（ら）れ・ます
-          // 〜（ら）れ・ろ
-          // 〜（ら）れ・ない
-        }
-
-        // TODO: think about mashita, nakatta, etc.
-
-        return null;
+        const nextTokens = [
+          agglutinatePassive(first, second),
+          ...tokens.slice(2),
+        ];
+        return getPitch(nextTokens);
       }
 
       return null;
@@ -843,6 +808,50 @@ function endsWithだろうorでしょう(tokens: ReadonlyArray<UniDicToken>) {
     ['だろう', 'でしょう'].includes(last.surface) &&
     last.pos === '助動詞,*,*,*'
   );
+}
+
+function agglutinateCausative(
+  base: UniDicToken,
+  causativeBase: UniDicToken
+): UniDicToken {
+  const lemma = `${base.surface}${causativeBase.lemma}`;
+  const lemmaSyllables = [...syllables(lemma)];
+  return {
+    surface: `${base.surface}${causativeBase.surface}`,
+    pos: base.pos,
+    pos1: base.pos1,
+    pos2: base.pos2,
+    pos3: base.pos3,
+    pos4: base.pos4,
+    // e.g. 見せる
+    // See:
+    // https://ja.wikipedia.org/wiki/下一段活用
+    // https://gist.github.com/fasiha/dd5eb7942c79571dd5895e05f27e8bb9
+    cType: '下一段-サ行',
+    cForm: causativeBase.cForm,
+    surfacePron: `${base.surfacePron}${causativeBase.surfacePron}`,
+    lemma,
+    accent:
+      base.accent === undefined
+        ? '*'
+        : (isAccented(base)
+            ? getHeadMoraPosition(-1, lemmaSyllables) ?? 1
+            : 0
+          ).toString(),
+    // TODO: track down any exceptions
+    agglutinatedFrom: [base, causativeBase],
+  };
+}
+
+function agglutinatePassive(
+  base: UniDicToken,
+  passiveBase: UniDicToken
+): UniDicToken {
+  return {
+    ...agglutinateCausative(base, passiveBase),
+    // e.g. 生まれる
+    cType: '下一段-ラ行',
+  };
 }
 
 type Base = UniDicTokenVerb | UniDicTokenAdjectiveI | UniDicTokenAdjectiveNa;
