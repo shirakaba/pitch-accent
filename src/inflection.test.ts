@@ -1,6 +1,6 @@
 import { describe, expect, test } from '@jest/globals';
 import { getPitch } from './inflection';
-import { unidicData } from './unidic-data.test';
+import { unidicData } from './unidic-data';
 
 describe('getPitch', () => {
   describe('suru', () => {
@@ -43,6 +43,10 @@ describe('getPitch', () => {
 
       test('CP', () => {
         expect(getPitch(unidicData.suru.saserareru)).toEqual(0);
+      });
+
+      test('imperative', () => {
+        expect(getPitch(unidicData.suru.shiro)).toEqual(0);
       });
     });
   });
@@ -87,6 +91,10 @@ describe('getPitch', () => {
 
       test('CP', () => {
         expect(getPitch(unidicData.kuru.kosaserareru)).toEqual(5);
+      });
+
+      test('imperative', () => {
+        expect(getPitch(unidicData.kuru.koi)).toEqual(1);
       });
     });
   });
@@ -193,6 +201,10 @@ describe('getPitch', () => {
               expect(getPitch(miru.mita)).toEqual(1);
             });
           });
+        });
+
+        test('imperative', () => {
+          expect(getPitch(miru.miro)).toEqual(1);
         });
       });
     });
@@ -325,6 +337,10 @@ describe('getPitch', () => {
 
         test('CP', () => {
           expect(getPitch(hajimeru.hajimesaserareru)).toEqual(0);
+        });
+
+        test('imperative', () => {
+          expect(getPitch(hajimeru.hajimero)).toEqual(0);
         });
       });
     });
@@ -508,6 +524,10 @@ describe('getPitch', () => {
         test('CP', () => {
           expect(getPitch(tsukuru.tsukuraserareru)).toEqual(6);
         });
+
+        test('imperative', () => {
+          expect(getPitch(tsukuru.tsukure)).toEqual(2);
+        });
       });
     });
 
@@ -595,6 +615,10 @@ describe('getPitch', () => {
 
         test('CP', () => {
           expect(getPitch(iu.iwaserareru)).toEqual(0);
+        });
+
+        test('imperative', () => {
+          expect(getPitch(iu.ie)).toEqual(0);
         });
       });
     });

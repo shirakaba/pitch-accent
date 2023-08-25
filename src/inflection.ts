@@ -89,6 +89,17 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
       : parseAccent(first.accent)?.[0] ?? null;
   }
 
+  // TODO: support imperative at the end of a long chain
+  if (isImperative(first)) {
+    if (tokens.length > 1) {
+      null;
+    }
+
+    return first.accent === undefined
+      ? null
+      : parseAccent(first.accent)?.[0] ?? null;
+  }
+
   // volitional
   // Works for suru, kuru, ichidan, and godan, whether accented or not.
   if (first.cForm === '意志推量形') {
@@ -426,6 +437,10 @@ function parseAccent(accent: string) {
  */
 function isTerminal(token: UniDicToken) {
   return ['終止形-一般', '連体形-一般'].includes(token.cForm);
+}
+
+function isImperative(token: UniDicToken) {
+  return token.cForm === '命令形';
 }
 
 /**
