@@ -278,25 +278,6 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
             : 0;
         }
 
-        // 〜（さ）せ・【ない・た・て・ます・ろ…】
-        if (tokens.length === 3 && third) {
-          // 〜（さ）せ・ない
-          if (isAttributive(third) && third.surface === 'ない') {
-            // TODO: add test.
-            // Rule based on examining examples in OJAD suffix search.
-            return isAccented(first)
-              ? getHeadMoraPosition(antepenultimateIndex, allSyllables) ?? 1
-              : 0;
-          }
-
-          // TODO:
-          // 〜（さ）せ・た
-          // 〜（さ）せ・て
-          // 〜（さ）せ・ます
-          // 〜（さ）せ・ろ
-
-          // Fall through
-        }
 
         // 〜（さ）せ・られ…
         if (third && isPassive(third)) {
@@ -322,7 +303,33 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
           return null;
         }
 
-        return null;
+        // iwa.se.nai
+        const agglutinatedLemma = `${first.surface}${second.lemma}`;
+        const agglutinatedSyllables = [...syllables(agglutinatedLemma)];
+        const agglutinatedToken: UniDicToken = {
+          surface: `${first.surface}${second.surface}`,
+          pos: first.pos,
+          pos1: first.pos1,
+          pos2: first.pos2,
+          pos3: first.pos3,
+          pos4: first.pos4,
+          // See:
+          // https://ja.wikipedia.org/wiki/下一段活用
+          // https://gist.github.com/fasiha/dd5eb7942c79571dd5895e05f27e8bb9
+          cType: '下一段-ラ行',
+          cForm: second.cForm,
+          surfacePron: `${first.surfacePron}${second.surfacePron}`,
+          lemma: agglutinatedLemma,
+          accent: (isAccented(first)
+            ? getHeadMoraPosition(-1, agglutinatedSyllables) ?? 1
+            : 0
+          ).toString(),
+          // TODO: track down any exceptions
+          agglutinatedFrom: [first, second],
+        };
+
+        const nextTokens = [agglutinatedToken, ...tokens.slice(2)];
+        return getPitch(nextTokens);
       }
 
       // 〜（ら）れ…
@@ -571,6 +578,12 @@ export interface UniDicToken {
    * "*"
    */
   accent: string;
+  /**
+   * Mainly for use by the library itself rather than end-users. Sometimes we
+   * find it convenient to agglutinate tokens so that we can recurse and re-use
+   * existing rules, as we do with passive and causative.
+   */
+  agglutinatedFrom?: UniDicToken[];
 }
 
 interface UniDicTokenVerb extends UniDicToken {
