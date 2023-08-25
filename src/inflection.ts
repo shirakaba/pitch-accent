@@ -268,56 +268,83 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
       //   - causative-passive: /あけ・させ・られる
       //
       // Verbs in られる, させる, or させられる forms are ichidan verbs.
+
+      // 〜（さ）せ…
       if (isCausative(second)) {
+        // 〜（さ）せる
+        if (tokens.length === 2) {
+          return isAccented(first)
+            ? getHeadMoraPosition(-1, allSyllables) ?? 1
+            : 0;
+        }
+
+        // 〜（さ）せ・【ない・た・て・ます・ろ…】
+        if (tokens.length === 3 && third) {
+          // 〜（さ）せ・ない
+          if (isAttributive(third) && third.surface === 'ない') {
+            // TODO: add test.
+            // Rule based on examining examples in OJAD suffix search.
+            return isAccented(first)
+              ? getHeadMoraPosition(antepenultimateIndex, allSyllables) ?? 1
+              : 0;
+          }
+
+          // TODO:
+          // 〜（さ）せ・た
+          // 〜（さ）せ・て
+          // 〜（さ）せ・ます
+          // 〜（さ）せ・ろ
+
+          // Fall through
+        }
+
+        // 〜（さ）せ・られ…
         if (third && isPassive(third)) {
-          if (tokens.length <= 3) {
-            // It's simply causative-passive in dictionary form.
+          // 〜（さ）せ・られる
+          if (tokens.length === 3) {
             return isAccented(first)
               ? getHeadMoraPosition(-1, allSyllables) ?? 1
               : 0;
           }
 
-          // It's causative-passive in a more deeply inflected form.
+          // 〜（さ）せ・（ら）れ・【ない・た・て・ます・ろ…】
+          if (tokens.length === 4) {
+            // TODO:
+            // 〜（さ）せ・（ら）れ・ない
+            // 〜（さ）せ・（ら）れ・た
+            // 〜（さ）せ・（ら）れ・て
+            // 〜（さ）せ・（ら）れ・ます
+            // 〜（さ）せ・（ら）れ・ろ
+          }
 
-          // TODO: handle te/ta/nai, which we have StackExchange answers for.
-          // TODO: think aobut mashita, etc.
+          // TODO: think about mashita, nakatta, etc.
 
           return null;
         }
 
-        // It's just causative.
-
-        if (tokens.length <= 2) {
-          // It's simply causative in dictionary form.
-          return isAccented(first)
-            ? getHeadMoraPosition(-1, allSyllables) ?? 1
-            : 0;
-        }
-
-        // It's causative in a more deeply inflected form.
-
-        // From NHK appendix III-2:
-        if (isAttributive(third) && third.surface === 'ない') {
-          return isAccented(first)
-            ? getHeadMoraPosition(antepenultimateIndex, allSyllables) ?? 1
-            : 0;
-        }
-
-        // TODO: handle nakatta - at some point we should be able to recurse.
-        // TODO: handle further inflected forms like te/ta.
-        // Need to look into rules for masu, etc. Hoping to find the general
-        // case.
-
         return null;
-      } else if (isPassive(second)) {
-        if (tokens.length <= 2) {
-          // It's simply passive in dictionary form.
+      }
+
+      // 〜（ら）れ…
+      if (isPassive(second)) {
+        if (tokens.length === 2) {
+          // 〜（ら）れる
           return isAccented(first)
             ? getHeadMoraPosition(-1, allSyllables) ?? 1
             : 0;
         }
 
-        // It's passive in a more deeply inflected form.
+        // 〜（ら）れ・【ない・た・て・ます・ろ…】
+        if (tokens.length === 3) {
+          // TODO:
+          // 〜（ら）れ・た
+          // 〜（ら）れ・て
+          // 〜（ら）れ・ます
+          // 〜（ら）れ・ろ
+          // 〜（ら）れ・ない
+        }
+
+        // TODO: think about mashita, nakatta, etc.
 
         return null;
       }
