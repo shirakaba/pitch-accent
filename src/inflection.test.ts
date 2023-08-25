@@ -228,6 +228,61 @@ describe('getPitch', () => {
         test('volitional', () => {
           expect(getPitch(hareru.hareyou)).toEqual(3);
         });
+
+        // Warning! Passive of "to become swollen" doesn't really make any sense
+        describe('passive', () => {
+          test('negative', () => {
+            expect(getPitch(hareru.harerarenai)).toEqual(0);
+          });
+
+          test('non-past', () => {
+            expect(getPitch(hareru.harerareru)).toEqual(0);
+          });
+
+          test('gerundive', () => {
+            expect(getPitch(hareru.harerarete)).toEqual(0);
+          });
+
+          test('past', () => {
+            expect(getPitch(hareru.harerareta)).toEqual(0);
+          });
+        });
+
+        describe('causative', () => {
+          test('negative', () => {
+            expect(getPitch(hareru.haresasenai)).toEqual(0);
+          });
+
+          test('non-past', () => {
+            expect(getPitch(hareru.haresaseru)).toEqual(0);
+          });
+
+          test('gerundive', () => {
+            expect(getPitch(hareru.haresasete)).toEqual(0);
+          });
+
+          test('past', () => {
+            expect(getPitch(hareru.haresaseta)).toEqual(0);
+          });
+
+          describe('CP', () => {
+            test('negative', () => {
+              expect(getPitch(hareru.haresaserarenai)).toEqual(0);
+            });
+
+            test('non-past', () => {
+              expect(getPitch(hareru.haresaserareru)).toEqual(0);
+            });
+
+            test('gerundive', () => {
+              expect(getPitch(hareru.haresaserarete)).toEqual(0);
+            });
+
+            test('past', () => {
+              expect(getPitch(hareru.haresaserareta)).toEqual(0);
+            });
+          });
+        });
       });
 
       describe('始める', () => {
