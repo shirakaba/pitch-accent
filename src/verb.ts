@@ -1,4 +1,5 @@
 import { morae } from './helpers';
+import { UniDicToken } from './inflection';
 import { TokenVerb, Token } from './token';
 
 export function verb(tokens: [TokenVerb, ...Token[]]) {
@@ -203,29 +204,52 @@ export function conjugateSuru(verb: TokenVerb, base: Base) {
   }
 }
 
-const aToU = 'う'.charCodeAt(0) - 'あ'.charCodeAt(0);
+const hiraganaTable = [
+  ['あ', 'い', 'う', 'え', 'お'],
+  ['か', 'き', 'く', 'け', 'こ'],
+  ['が', 'ぎ', 'ぐ', 'げ', 'ご'],
+  ['さ', 'し', 'す', 'せ', 'そ'],
+  ['ざ', 'じ', 'ず', 'ぜ', 'ぞ'],
+  ['た', 'ち', 'つ', 'て', 'と'],
+  ['だ', 'ぢ', 'づ', 'で', 'ど'],
+  ['な', 'に', 'ぬ', 'ね', 'の'],
+  ['は', 'ひ', 'ふ', 'へ', 'ほ'],
+  ['ば', 'び', 'ぶ', 'べ', 'ぼ'],
+  ['ぱ', 'ぴ', 'ぷ', 'ぺ', 'ぽ'],
+  ['ま', 'み', 'む', 'め', 'も'],
+  ['や', 'ー', 'ゆ', 'ー', 'よ'],
+  ['ら', 'り', 'る', 'れ', 'ろ'],
+  ['わ', 'ゐ', 'ー', 'ゑ', 'を'],
+] as const;
 
-function shiftChar(char: VerbEnd, row: Vowel) {
-  const offset = 'お'.charCodeAt(0) - row.charCodeAt(0);
-
-  switch (char) {
-    case 'う':
-      return row === 'あ' ? 'わ' : null;
-    case 'く':
-    case 'ぐ':
-    case 'す':
-    case 'ず':
-    case 'つ':
-    case 'づ':
-    case 'ぬ':
-    case 'ふ':
-    case 'ぶ':
-    case 'ぷ':
-    case 'む':
-    case 'ゆ':
-    case 'る':
-      return String.fromCharCode(char.charCodeAt(0) - aToU + offset);
+export function shiftChar(char: VerbEnd, col: Vowel) {
+  if (char === 'う' && col === 'あ') {
+    return 'わ';
   }
+
+  let rowIndex = -1;
+  let colIndex = -1;
+  for (const [r, row] of hiraganaTable.entries()) {
+    for (const [c, col] of row.entries()) {
+      if (col === char) {
+        rowIndex = r;
+        colIndex = c;
+        break;
+      }
+    }
+  }
+
+  if (rowIndex === -1 || colIndex === -1) {
+    return null;
+  }
+
+  const targetColIndex = hiraganaTable[0].indexOf(col);
+  if (targetColIndex === -1) {
+    return null;
+  }
+
+  const target = hiraganaTable[rowIndex][targetColIndex];
+  return target === 'ー' ? null : target;
 }
 
 function isVerbEnd(text: string): text is VerbEnd {

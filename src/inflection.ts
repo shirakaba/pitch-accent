@@ -398,17 +398,34 @@ function isBase(token: UniDicToken): token is Base {
   );
 }
 
-function isIchidan(token: UniDicToken) {
+export function isIchidan(token: UniDicToken) {
   return token.cType.includes('一段');
 }
-function isGodan(token: UniDicToken) {
+export function isGodan(token: UniDicToken) {
   return token.cType.includes('五段');
 }
-function isSuruGroup(token: UniDicToken) {
+export function isSuruGroup(token: UniDicToken) {
   return token.cType === 'サ行変格';
 }
-function isKuruGroup(token: UniDicToken) {
+export function isKuruGroup(token: UniDicToken) {
   return token.cType === 'カ行変格';
+}
+export function getGroup(token: UniDicToken) {
+  if (isSuruGroup(token)) {
+    return 'suru';
+  }
+  if (isKuruGroup(token)) {
+    return 'kuru';
+  }
+  if (isGodan(token)) {
+    return 'godan';
+  }
+  if (isIchidan(token)) {
+    return 'ichidan';
+  }
+
+  // May not be a verb at all. Or may not be a known verb.
+  return null;
 }
 function isAccented(token: UniDicToken) {
   if (token.accent === undefined) {
@@ -422,7 +439,7 @@ function isAccented(token: UniDicToken) {
 
   return accents.some((accent) => accent > 0);
 }
-function parseAccent(accent: string) {
+export function parseAccent(accent: string) {
   const accents = accent
     .split(',')
     .map((value) => parseInt(value))
