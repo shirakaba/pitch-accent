@@ -27,6 +27,10 @@ export class VerbBuilder {
     }
   }
 
+  get() {
+    return this.surface;
+  }
+
   toBase(base: Base) {
     if (!this.group || !this.surface) {
       return this;
@@ -59,10 +63,6 @@ export class VerbBuilder {
       return null;
     }
 
-    const graphemes = [...this.surface];
-    const last = graphemes.at(-1)!;
-    const leading = graphemes.slice(0, -1).join('');
-
     switch (affix) {
       case 'conditional': {
         if (this.currentForm !== 'kateikei') {
@@ -81,6 +81,8 @@ export class VerbBuilder {
           default:
             this.surface += 'ば';
         }
+
+        break;
       }
       case 'potential': {
         // Does not conjugate.
@@ -110,6 +112,8 @@ export class VerbBuilder {
             this.surface += 'られる';
             break;
         }
+
+        break;
       }
       case 'imperative': {
         if (this.surface.endsWith('ます')) {
@@ -129,6 +133,8 @@ export class VerbBuilder {
           case 'ichidan':
             this.surface += 'ろ';
         }
+
+        break;
       }
       case 'negative': {
         if (this.surface.endsWith('ます')) {
@@ -153,6 +159,8 @@ export class VerbBuilder {
           default:
             this.surface += 'ない';
         }
+
+        break;
       }
       case 'passive': {
         if (this.currentForm !== 'mizenkei') {
@@ -178,6 +186,8 @@ export class VerbBuilder {
             this.surface += 'られる';
             break;
         }
+
+        break;
       }
       case 'causative': {
         if (this.currentForm !== 'mizenkei') {
@@ -203,6 +213,8 @@ export class VerbBuilder {
             this.surface += 'させる';
             break;
         }
+
+        break;
       }
       case 'volitional': {
         if (this.group === 'godan') {
@@ -232,6 +244,8 @@ export class VerbBuilder {
             this.surface += 'よう';
             break;
         }
+
+        break;
       }
       case 'conjunctive': {
         if (this.currentForm !== "ren'youkei") {
@@ -241,6 +255,8 @@ export class VerbBuilder {
         // TODO: handle honorific
 
         // No changes necessary.
+
+        break;
       }
       case 'perfective': {
         if (this.group === 'godan') {
@@ -316,6 +332,8 @@ export class VerbBuilder {
             this.surface += 'た';
             break;
         }
+
+        break;
       }
       case 'te': {
         if (this.group === 'godan') {
@@ -394,15 +412,15 @@ export class VerbBuilder {
             this.surface += 'て';
             break;
         }
+
+        break;
       }
     }
 
     this.affixes.push(affix);
     // TODO: update currentForm
-  }
 
-  get() {
-    return this.verb;
+    return this;
   }
 }
 
