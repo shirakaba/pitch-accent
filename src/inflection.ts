@@ -199,6 +199,33 @@ export function getPitch(
 
         return predictions.length ? (predictions as PitchPredictions) : null;
       }
+
+      // NHK 2
+      const satisfiesNHK2 = endsWithたい(tokens);
+      // TODO: We've already covered causative and passive elsewhere, but this
+      // rule does cover a few other ones:
+      // 〜（さ）せない
+      // 〜（さ）せる
+      // 〜そうだ
+      // 〜ながら
+      // 〜（ら）れる
+      if (satisfiesNHK2) {
+        const predictions = new Array<PitchPrediction>();
+        if (!isAccented(first)) {
+          predictions.push({
+            confidence: 'high',
+            reason: 'NHK 2',
+            accent: [0],
+          });
+        }
+        predictions.push({
+          confidence: 'high',
+          reason: 'NHK 2',
+          accent: [getHeadMoraPosition(-1, allSyllables) ?? 1],
+        });
+
+        return predictions.length ? (predictions as PitchPredictions) : null;
+      }
     }
   }
 
@@ -1081,6 +1108,19 @@ function endsWithだろうorでしょう(tokens: ReadonlyArray<UniDicToken>) {
     ['だろう', 'でしょう'].includes(last.surface) &&
     last.pos === '助動詞,*,*,*'
     ? partitionFromEnd(tokens, -1)
+    : null;
+}
+
+function endsWithたい(tokens: ReadonlyArray<UniDicToken>) {
+  const [penultimate, last] = tokens.slice(-2);
+  if (!penultimate || !last) {
+    return null;
+  }
+
+  return isRenyoukeiOrIdentical(penultimate) &&
+    last.surface === 'たい' &&
+    last.pos === '助動詞,*,*,*'
+    ? partitionFromEnd(tokens, -2)
     : null;
 }
 

@@ -7,8 +7,7 @@ function generateForms(dictionaryForm: UniDicToken) {
 
   return [
     verb().toBase('renyoukei').get() + 'ます',
-    // TODO: ~tai form
-    // verb().toBase('renyoukei').get() + 'たい',
+    verb().toBase('renyoukei').get() + 'たい',
     verb().toBase('renyoukei').get() + 'は',
     verb().toBase('shuushikei').get(),
     verb().toBase('shuushikei').get() + 'だけ',
