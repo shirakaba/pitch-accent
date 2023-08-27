@@ -8,6 +8,8 @@ function generateForms(dictionaryForm: UniDicToken) {
   return [
     verb().toBase('renyoukei').get() + 'ます',
     verb().toBase('renyoukei').get() + 'たい',
+    verb().toBase('renyoukei').get() + 'そうだ',
+    verb().toBase('renyoukei').get() + 'ながら',
     verb().toBase('renyoukei').get() + 'は',
     verb().toBase('shuushikei').get(),
     verb().toBase('shuushikei').get() + 'だけ',

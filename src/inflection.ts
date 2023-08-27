@@ -201,28 +201,46 @@ export function getPitch(
       }
 
       // NHK 2
-      const satisfiesNHK2 = endsWithたい(tokens);
-      // TODO: We've already covered causative and passive elsewhere, but this
-      // rule does cover a few other ones:
+      const satisfiesNHK2 =
+        endsWithたい(tokens) ||
+        endsWithそうだ(tokens) ||
+        endsWithながら(tokens);
+      // This rule does also cover some causative and passive forms, but we've
+      // ended up handling those elsewhere:
       // 〜（さ）せない
       // 〜（さ）せる
-      // 〜そうだ
-      // 〜ながら
       // 〜（ら）れる
       if (satisfiesNHK2) {
         const predictions = new Array<PitchPrediction>();
+        const [_verbTokens, auxiliaryTokens] = satisfiesNHK2;
+        const auxiliarySurface = auxiliaryTokens.map((t) => t.surface).join('');
+        const alsoBehavesAsAccented = ['ながら', 'たい'].includes(
+          auxiliarySurface
+        );
+
+        const common = {
+          confidence: 'high',
+          reason: 'NHK 2',
+        } as const;
+
         if (!isAccented(first)) {
           predictions.push({
-            confidence: 'high',
-            reason: 'NHK 2',
+            ...common,
             accent: [0],
           });
         }
-        predictions.push({
-          confidence: 'high',
-          reason: 'NHK 2',
-          accent: [getHeadMoraPosition(-1, allSyllables) ?? 1],
-        });
+
+        if (isAccented(first) || alsoBehavesAsAccented) {
+          predictions.push({
+            ...common,
+            accent: [
+              getHeadMoraPosition(
+                auxiliarySurface === 'ながら' ? -2 : -1,
+                allSyllables
+              ) ?? 1,
+            ],
+          });
+        }
 
         return predictions.length ? (predictions as PitchPredictions) : null;
       }
@@ -1121,6 +1139,34 @@ function endsWithたい(tokens: ReadonlyArray<UniDicToken>) {
     last.surface === 'たい' &&
     last.pos === '助動詞,*,*,*'
     ? partitionFromEnd(tokens, -2)
+    : null;
+}
+
+function endsWithそうだ(tokens: ReadonlyArray<UniDicToken>) {
+  const [verb, penultimate, last] = tokens.slice(-2);
+  if (!verb || !penultimate || !last) {
+    return null;
+  }
+
+  return isRenyoukeiOrIdentical(verb) &&
+    penultimate.surface === 'そう' &&
+    last.surface === 'だ' &&
+    penultimate.pos === '形状詞,助動詞語幹,*,*' &&
+    last.pos === '助動詞,*,*,*'
+    ? partitionFromEnd(tokens, -2)
+    : null;
+}
+
+function endsWithながら(tokens: ReadonlyArray<UniDicToken>) {
+  const [penultimate, last] = tokens.slice(-2);
+  if (!penultimate || !last) {
+    return null;
+  }
+
+  return isRenyoukeiOrIdentical(penultimate) &&
+    last.surface === 'ながら' &&
+    last.pos === '助詞,接続助詞,*,*'
+    ? partitionFromEnd(tokens, -1)
     : null;
 }
 
