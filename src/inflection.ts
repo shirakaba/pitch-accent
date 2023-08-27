@@ -3,74 +3,201 @@ import { getHeadMoraPosition, morae, syllables } from './helpers';
 // TODO: Support long words like:
 // 教えたりしなければならない
 // 食べさせられたくなかった
-// TODO: See NHK for 命令形 and 可能表現
+// TODO: See NHK for 可能表現
 
-export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
+export function getPitch(
+  tokens: ReadonlyArray<UniDicToken>
+): PitchPredictions | null {
   const surfacePron = tokens.map((t) => t.surfacePron).join('');
   const [first, ...trailing] = tokens;
-  const [second, third, fourth] = trailing;
+  const [second, third] = trailing;
   const trailingSurface = trailing.map((token) => token.surface).join('');
   const allSyllables = [...syllables(surfacePron)];
-  const allMorae = allSyllables.flat(1).join('');
 
   if (!first || !isBase(first)) {
     return null;
   }
 
   const [penultimate, last] = tokens.slice(-2);
+  const accents = parseAccent(first.accent);
+
   // if (penultimate && last?.type === 'other') {
   if (penultimate && last) {
     if (first.accent !== undefined) {
       // NHK 1.1.a
-      if (
+      const satisfiesNHK11a =
         endsWithに(tokens) ||
         endsWithたorだ(tokens) ||
-        endsWithだけorほど(tokens)
-      ) {
-        const auxiliaryMorae = [...morae(last.surface)].length;
-        return isAccented(first)
-          ? getHeadMoraPosition(-(auxiliaryMorae + 1), allSyllables) ?? 1
-          : 0;
+        endsWithだけorほど(tokens);
+
+      if (satisfiesNHK11a) {
+        const [_verb, [auxiliary]] = satisfiesNHK11a;
+        const auxiliaryMorae = [...morae(auxiliary.surface)].length;
+
+        return [
+          {
+            confidence: 'high',
+            reason: 'NHK 1.1.a',
+            accent: [
+              isAccented(first)
+                ? getHeadMoraPosition(-(auxiliaryMorae + 1), allSyllables) ?? 1
+                : 0,
+            ],
+          },
+        ];
       }
 
       // NHK 1.1.b
-      if (
+      const satisfiesNHK11b =
         endsWithは(tokens) ||
         endsWithけれども(tokens) ||
-        // TODO: と may also be heiban
         endsWithがetc(tokens) ||
         endsWithしか(tokens) ||
         endsWithのだetc(tokens) ||
-        endsWithば(tokens)
-      ) {
-        const auxiliaryMorae = [...morae(last.surface)].length;
-        return (
-          getHeadMoraPosition(
-            isAccented(first) ? -(auxiliaryMorae + 1) : -auxiliaryMorae,
-            allSyllables
-          ) ?? 1
-        );
+        endsWithば(tokens);
+
+      if (satisfiesNHK11b) {
+        const [_verb, auxiliaryTokens] = satisfiesNHK11b;
+        const auxiliaryMorae = auxiliaryTokens.flatMap((token) => [
+          ...morae(token.surface),
+        ]).length;
+
+        return [
+          {
+            confidence: 'high',
+            reason: 'NHK 1.1.b',
+            accent: [
+              getHeadMoraPosition(
+                isAccented(first) ? -(auxiliaryMorae + 1) : -auxiliaryMorae,
+                allSyllables
+              ) ?? 1,
+              // We add 0 as an option for 'と', as it may also be heiban.
+              ...(isAccented(first) || last.surface !== 'と' ? [] : [0]),
+            ],
+          },
+        ];
       }
 
       // NHK 1.2.a
-      if (
+      const satisfiesNHK12a =
         endsWithそうだorみたいだ(tokens) ||
         endsWithらしい(tokens) ||
         endsWithどころか(tokens) ||
         endsWithようだ(tokens) ||
-        endsWithぐらいetc(tokens)
-      ) {
-        const auxiliaryAccent = last.surface === 'らしい' ? 2 : 1;
+        endsWithぐらいetc(tokens);
 
-        // TODO: Need to figure out how to represent two downsteps.
-        // TODO: くらい・ぐらい and どころか also have an alternative pattern.
-        return isAccented(first) ? null : allMorae.length + auxiliaryAccent;
+      if (satisfiesNHK12a) {
+        const [verbTokens, auxiliaryTokens] = satisfiesNHK12a;
+        const verbSurface = verbTokens.map((t) => t.surface).join('');
+        const auxiliarySurface = auxiliaryTokens.map((t) => t.surface).join('');
+        const verbMorae = [...morae(verbSurface)].length;
+        const auxiliaryAccent = auxiliarySurface === 'らしい' ? 2 : 1;
+        const alsoBehavesAsUnaccented = [
+          'どころか',
+          'ぐらい',
+          'くらい',
+        ].includes(auxiliarySurface);
+
+        const common = {
+          confidence: 'high',
+          reason: 'NHK 1.2.a',
+        } as const;
+
+        if (!accents) {
+          // Unable to parse.
+          return null;
+        }
+
+        // TODO: change this all from 1.2.b to 1.2.a
+        const predictions = new Array<PitchPrediction>();
+        if (isAccented(first) && alsoBehavesAsUnaccented) {
+          predictions.push({
+            ...common,
+            accent: [verbMorae + auxiliaryAccent],
+          });
+        }
+
+        for (const accent of accents) {
+          if (accent) {
+            predictions.push({
+              ...common,
+              accent: [
+                // The verb's own accent...
+                accent,
+                // ... and also the auxiliary's own downstep.
+                verbMorae + auxiliaryAccent,
+              ],
+              // Warning: from the limited examples, it could possibly be "one
+              // head mora back from the auxiliary" instead, but I think, from
+              // the explanations, it should be the verb's own accent.
+            });
+            continue;
+          }
+
+          predictions.push({
+            ...common,
+            accent: [verbMorae + auxiliaryAccent],
+          });
+        }
+
+        return predictions.length ? (predictions as PitchPredictions) : null;
       }
 
       // NHK 1.2.b
-      if (endsWithだろうorでしょう(tokens)) {
-        // TODO: Need to figure out how to represent two downsteps.
-        return null;
+      const satisfiesNHK12b = endsWithだろうorでしょう(tokens);
+      if (satisfiesNHK12b) {
+        const [verbTokens] = satisfiesNHK12b;
+        const verbSurface = verbTokens.map((t) => t.surface).join('');
+        const verbMorae = [...morae(verbSurface)].length;
+        const verbSyllables = [...syllables(verbSurface)];
+        const auxiliaryAccent = 2;
+
+        if (!accents) {
+          // Unable to parse.
+          return null;
+        }
+
+        const common = {
+          confidence: 'high',
+          reason: 'NHK 1.2.b',
+        } as const;
+
+        const predictions = new Array<PitchPrediction>();
+        for (const accent of accents) {
+          if (accent) {
+            predictions.push({
+              ...common,
+              accent: [
+                // The verb's own accent...
+                accent,
+                // ... and also the auxiliary's own downstep.
+                verbMorae + auxiliaryAccent,
+              ],
+            });
+            continue;
+          }
+
+          predictions.push(
+            {
+              ...common,
+              accent: [
+                // The final head mora of the verb...
+                getHeadMoraPosition(-0, verbSyllables) ?? 1,
+                // ... and also the auxiliary's own downstep.
+                verbMorae + auxiliaryAccent,
+              ],
+            },
+            {
+              ...common,
+              accent: [
+                // Just the auxiliary's own downstep.
+                verbMorae + auxiliaryAccent,
+              ],
+            }
+          );
+        }
+
+        return predictions.length ? (predictions as PitchPredictions) : null;
       }
     }
   }
@@ -83,10 +210,12 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
       return null;
     }
 
-    // TODO: support returning multiple possible acccents
-    return first.accent === undefined
-      ? null
-      : parseAccent(first.accent)?.[0] ?? null;
+    const predictions = accents?.map<PitchPrediction>((accent) => ({
+      confidence: 'verified',
+      reason: 'Dictionary data directly available for this inflection',
+      accent: [accent],
+    }));
+    return predictions?.length ? (predictions as PitchPredictions) : null;
   }
 
   // TODO: support imperative at the end of a long chain
@@ -95,9 +224,12 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
       null;
     }
 
-    return first.accent === undefined
-      ? null
-      : parseAccent(first.accent)?.[0] ?? null;
+    const predictions = accents?.map<PitchPrediction>((accent) => ({
+      confidence: 'verified',
+      reason: 'Dictionary data directly available for this inflection',
+      accent: [accent],
+    }));
+    return predictions?.length ? (predictions as PitchPredictions) : null;
   }
 
   // volitional
@@ -108,7 +240,15 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
       return null;
     }
 
-    return getHeadMoraPosition(-1, allSyllables) ?? 1;
+    return [
+      {
+        confidence: 'high',
+        reason: 'NHK 4.1',
+        // Surprisingly, volitional-form tokens do exist in UniDic, but the
+        // accent listed refers to the dictionary form instead.
+        accent: [getHeadMoraPosition(-1, allSyllables) ?? 1],
+      },
+    ];
   }
 
   // TODO: handle second token being something else, like a particle.
@@ -131,7 +271,13 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
   if (isRenyoukeiOrIdentical(first)) {
     // polite
     if (second.cType === '助動詞-マス') {
-      return getHeadMoraPosition(-1, coupletSyllables) ?? 1;
+      return [
+        {
+          confidence: 'high',
+          reason: 'NHK 4.1',
+          accent: [getHeadMoraPosition(-1, coupletSyllables) ?? 1],
+        },
+      ];
     }
 
     // Fall through
@@ -144,7 +290,13 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
     if (['未然形-一般', '未然形-サ'].includes(first.cForm)) {
       // negative
       if (isAttributive(second) && second.surface === 'ない') {
-        return 0;
+        return [
+          {
+            confidence: 'verified',
+            reason: 'NHK 3.1, and manually checked across various dictionaries',
+            accent: [0],
+          },
+        ];
       }
 
       // MeCab may tokenise these forms a few different ways, so easiest just to
@@ -157,7 +309,13 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
       // /さ・せ・られる (causative-passive) 0
       const trailingSurface = trailing.map((token) => token.surface).join('');
       if (['せる', 'れる', 'せられる'].includes(trailingSurface)) {
-        return 0;
+        return [
+          {
+            confidence: 'verified',
+            reason: 'NHK 2, and manually checked across various dictionaries',
+            accent: [0],
+          },
+        ];
       }
       return null;
     }
@@ -169,7 +327,14 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
         // shita and shite
         (endsWithたorだ(tokens) || endsWithてorで(tokens))
       ) {
-        return 0;
+        return [
+          {
+            confidence: 'verified',
+            reason:
+              'NHK 1.1a, and manually checked across various dictionaries',
+            accent: [0],
+          },
+        ];
       }
 
       return null;
@@ -179,7 +344,14 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
     if (first.cForm === '仮定形-一般') {
       // conditional
       if (second.surface === 'ば' && second.pos === '助詞,接続助詞') {
-        return getHeadMoraPosition(-1, coupletSyllables) ?? 1;
+        return [
+          {
+            confidence: 'verified',
+            reason:
+              'NHK 1.1b, and manually checked across various dictionaries',
+            accent: [getHeadMoraPosition(-1, coupletSyllables) ?? 1],
+          },
+        ];
       }
 
       return null;
@@ -195,7 +367,13 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
     if (first.cForm === '未然形-一般') {
       // negative
       if (isAttributive(second) && second.surface === 'ない') {
-        return 1;
+        return [
+          {
+            confidence: 'verified',
+            reason: 'NHK 3.1, and manually checked across various dictionaries',
+            accent: [1],
+          },
+        ];
       }
 
       // causative-passive is handled the same as passive.
@@ -209,7 +387,14 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
           trailingSurface === 'させられる'
             ? tripletSyllables
             : coupletSyllables;
-        return getHeadMoraPosition(-1, trailingSyllables) ?? 1;
+
+        return [
+          {
+            confidence: 'verified',
+            reason: 'NHK 2, and manually checked across various dictionaries',
+            accent: [getHeadMoraPosition(-1, trailingSyllables) ?? 1],
+          },
+        ];
       }
 
       return null;
@@ -222,7 +407,14 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
         // kita and kite
         (endsWithたorだ(tokens) || endsWithてorで(tokens))
       ) {
-        return 1;
+        return [
+          {
+            confidence: 'verified',
+            reason:
+              'NHK 1.1a, and manually checked across various dictionaries',
+            accent: [1],
+          },
+        ];
       }
 
       return null;
@@ -232,7 +424,16 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
     if (first.cForm === '仮定形-一般') {
       // conditional
       if (second.surface === 'ば' && second.pos === '助詞,接続助詞') {
-        return getHeadMoraPosition(antepenultimateIndex, coupletSyllables) ?? 1;
+        return [
+          {
+            confidence: 'verified',
+            reason:
+              'NHK 1.1b, and manually checked across various dictionaries',
+            accent: [
+              getHeadMoraPosition(antepenultimateIndex, coupletSyllables) ?? 1,
+            ],
+          },
+        ];
       }
 
       return null;
@@ -251,9 +452,16 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
     if (first.cForm === '未然形-一般') {
       // negative
       if (isAttributive(second) && second.surface === 'ない') {
-        return isAccented(first)
-          ? getHeadMoraPosition(antepenultimateIndex, coupletSyllables) ?? 1
-          : 0;
+        const predictions = accents?.map<PitchPrediction>((accent) => ({
+          confidence: 'high',
+          reason: 'NHK 3.1',
+          accent: [
+            accent
+              ? getHeadMoraPosition(antepenultimateIndex, coupletSyllables) ?? 1
+              : 0,
+          ],
+        }));
+        return predictions?.length ? (predictions as PitchPredictions) : null;
       }
 
       // causative-passive is handled the same as passive.
@@ -284,18 +492,26 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
       if (isCausative(second)) {
         // 〜（さ）せる
         if (tokens.length === 2) {
-          return isAccented(first)
-            ? getHeadMoraPosition(-1, allSyllables) ?? 1
-            : 0;
+          const predictions = accents?.map<PitchPrediction>((accent) => ({
+            confidence: 'high',
+            reason: '?',
+            accent: [accent ? getHeadMoraPosition(-1, allSyllables) ?? 1 : 0],
+          }));
+          return predictions?.length ? (predictions as PitchPredictions) : null;
         }
 
         // 〜（さ）せ・られ…
         if (third && isPassive(third)) {
           // 〜（さ）せ・られる
           if (tokens.length === 3) {
-            return isAccented(first)
-              ? getHeadMoraPosition(-1, allSyllables) ?? 1
-              : 0;
+            const predictions = accents?.map<PitchPrediction>((accent) => ({
+              confidence: 'high',
+              reason: '?',
+              accent: [accent ? getHeadMoraPosition(-1, allSyllables) ?? 1 : 0],
+            }));
+            return predictions?.length
+              ? (predictions as PitchPredictions)
+              : null;
           }
 
           // 〜（さ）せ・（ら）れ・【ない・た・て・ます・ろ…】
@@ -319,9 +535,12 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
       if (isPassive(second)) {
         if (tokens.length === 2) {
           // 〜（ら）れる
-          return isAccented(first)
-            ? getHeadMoraPosition(-1, allSyllables) ?? 1
-            : 0;
+          const predictions = accents?.map<PitchPrediction>((accent) => ({
+            confidence: 'high',
+            reason: '?',
+            accent: [accent ? getHeadMoraPosition(-1, allSyllables) ?? 1 : 0],
+          }));
+          return predictions?.length ? (predictions as PitchPredictions) : null;
         }
 
         // 〜（ら）れ・【ない・た・て・ます・ろ…】
@@ -347,22 +566,36 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
 
       // perfective
       if (endsWithたorだ(tokens)) {
-        return isAccented(first)
-          ? getHeadMoraPosition(
-              isIchidan(first) ? antepenultimateIndex : -1,
-              coupletSyllables
-            ) ?? 1
-          : 0;
+        const predictions = accents?.map<PitchPrediction>((accent) => ({
+          confidence: 'high',
+          reason: '?',
+          accent: [
+            accent
+              ? getHeadMoraPosition(
+                  isIchidan(first) ? antepenultimateIndex : -1,
+                  coupletSyllables
+                ) ?? 1
+              : 0,
+          ],
+        }));
+        return predictions?.length ? (predictions as PitchPredictions) : null;
       }
 
       // gerundive (te form)
       if (endsWithてorで(tokens)) {
-        return isAccented(first)
-          ? getHeadMoraPosition(
-              isIchidan(first) ? antepenultimateIndex : -1,
-              coupletSyllables
-            ) ?? 1
-          : 0;
+        const predictions = accents?.map<PitchPrediction>((accent) => ({
+          confidence: 'high',
+          reason: '?',
+          accent: [
+            accent
+              ? getHeadMoraPosition(
+                  isIchidan(first) ? antepenultimateIndex : -1,
+                  coupletSyllables
+                ) ?? 1
+              : 0,
+          ],
+        }));
+        return predictions?.length ? (predictions as PitchPredictions) : null;
       }
 
       return null;
@@ -372,12 +605,17 @@ export function getPitch(tokens: ReadonlyArray<UniDicToken>) {
     if (first.cForm === '仮定形-一般') {
       // conditional
       if (second.surface === 'ば' && second.pos === '助詞,接続助詞') {
-        return (
-          getHeadMoraPosition(
-            isAccented(first) ? antepenultimateIndex : -1,
-            coupletSyllables
-          ) ?? 1
-        );
+        const predictions = accents?.map<PitchPrediction>((accent) => ({
+          confidence: 'high',
+          reason: '?',
+          accent: [
+            getHeadMoraPosition(
+              accent ? antepenultimateIndex : -1,
+              coupletSyllables
+            ) ?? 1,
+          ],
+        }));
+        return predictions?.length ? (predictions as PitchPredictions) : null;
       }
 
       return null;
@@ -607,15 +845,17 @@ interface UniDicTokenAdjectiveNa extends UniDicToken {
 function endsWithに(tokens: ReadonlyArray<UniDicToken>) {
   const [penultimate, last] = tokens.slice(-2);
   if (!penultimate || !last) {
-    return false;
+    return null;
   }
 
   return (
     // Requiring 動詞,一般,*,* would disqualify した (動詞,非自立可能,*,*)
     // first.pos === '動詞,一般,*,*' &&
     isRenyoukeiOrIdentical(penultimate) &&
-    last.surface === 'に' &&
-    last.pos === '助詞,格助詞,*,*'
+      last.surface === 'に' &&
+      last.pos === '助詞,格助詞,*,*'
+      ? partitionFromEnd(tokens, -1)
+      : null
   );
 }
 
@@ -623,20 +863,22 @@ function endsWithたorだ(tokens: ReadonlyArray<UniDicToken>) {
   if (tokens.length !== 2) {
     // We have other rules for longer words involving katta and nakatta.
     // TODO: check whether ~ta applies for ~sareta, ~rareta.
-    return false;
+    return null;
   }
 
   const [first, second] = tokens.slice(0, 2);
   if (!first || !second) {
-    return false;
+    return null;
   }
 
   return (
     // Requiring 動詞,一般,*,* would disqualify した (動詞,非自立可能,*,*)
     // first.pos === '動詞,一般,*,*' &&
     isOnbinkeiOrIdentical(first) &&
-    ['た', 'だ'].includes(second.surface) &&
-    second.pos === '助動詞,*,*,*'
+      ['た', 'だ'].includes(second.surface) &&
+      second.pos === '助動詞,*,*,*'
+      ? partitionFromEnd(tokens, -1)
+      : null
   );
 }
 
@@ -644,202 +886,234 @@ function endsWithてorで(tokens: ReadonlyArray<UniDicToken>) {
   if (tokens.length !== 2) {
     // We have other rules for longer words involving kute.
     // TODO: check whether ~ta applies for ~sarete, ~rarete.
-    return false;
+    return null;
   }
 
   const [first, second] = tokens.slice(0, 2);
   if (!first || !second) {
-    return false;
+    return null;
   }
 
-  return (
-    isOnbinkeiOrIdentical(first) &&
+  return isOnbinkeiOrIdentical(first) &&
     ['て', 'で'].includes(second.surface) &&
     second.pos === '助詞,接続助詞,*,*'
-  );
+    ? partitionFromEnd(tokens, -1)
+    : null;
 }
 
 function endsWithだけorほど(tokens: ReadonlyArray<UniDicToken>) {
   const [penultimate, last] = tokens.slice(-2);
   if (!penultimate || !last) {
-    return false;
+    return null;
   }
 
-  return (
-    isAttributive(penultimate) &&
+  return isAttributive(penultimate) &&
     ['だけ', 'ほど'].includes(last.surface) &&
     last.pos === '助詞,副助詞,*,*'
-  );
+    ? partitionFromEnd(tokens, -1)
+    : null;
 }
 
 function endsWithは(tokens: ReadonlyArray<UniDicToken>) {
   const [penultimate, last] = tokens.slice(-2);
   if (!penultimate || !last) {
-    return false;
+    return null;
   }
 
-  return (
-    isRenyoukeiOrIdentical(penultimate) &&
+  return isRenyoukeiOrIdentical(penultimate) &&
     last.surface === 'は' &&
     last.pos === '助詞,係助詞,*,*'
-  );
+    ? partitionFromEnd(tokens, -1)
+    : null;
 }
 
 function endsWithけれども(tokens: ReadonlyArray<UniDicToken>) {
   const [terminus, keredo, mo] = tokens.slice(-3);
   if (!terminus || !keredo || !mo) {
-    return false;
+    return null;
   }
 
-  return (
-    isTerminal(terminus) &&
+  return isTerminal(terminus) &&
     keredo.surface === 'けれど' &&
     keredo.pos === '助詞,接続助詞,*,*' &&
     mo.surface === 'も' &&
     mo.pos === '助詞,係助詞,*,*'
-  );
+    ? partitionFromEnd(tokens, -2)
+    : null;
 }
 
 function endsWithがetc(tokens: ReadonlyArray<UniDicToken>) {
   const [penultimate, last] = tokens.slice(-2);
   if (!penultimate || !last) {
-    return false;
+    return null;
   }
 
-  return (
-    isTerminal(penultimate) &&
+  return isTerminal(penultimate) &&
     ['が', 'から', 'けれど', 'し', 'って', 'と', 'なら'].includes(last.surface)
-    // TODO: figure out pos. It varies between って and けれど.
-    // && last.pos === '助詞,接続助詞,*,*'
-  );
+    ? // TODO: figure out pos. It varies between って and けれど.
+      // && last.pos === '助詞,接続助詞,*,*'
+      partitionFromEnd(tokens, -1)
+    : null;
 }
 
 function endsWithしか(tokens: ReadonlyArray<UniDicToken>) {
   const [penultimate, last] = tokens.slice(-2);
   if (!penultimate || !last) {
-    return false;
+    return null;
   }
 
-  return (
-    isAttributive(penultimate) &&
+  return isAttributive(penultimate) &&
     last.surface === 'しか' &&
     last.pos === '助詞,副助詞,*,*'
-  );
+    ? partitionFromEnd(tokens, -1)
+    : null;
 }
 
 function endsWithのだetc(tokens: ReadonlyArray<UniDicToken>) {
   const [terminus, no, final] = tokens.slice(-3);
   if (!terminus || !no || !final) {
-    return false;
+    return null;
   }
 
-  return (
-    isAttributive(terminus) &&
+  return isAttributive(terminus) &&
     no.surface === 'の' &&
     no.pos === '助詞,準体助詞,*,*' &&
     ((['だ', 'で'].includes(final.surface) && final.pos === '助動詞,*,*,*') ||
       (final.surface === 'に' && final.pos === '助詞,格助詞,*,*'))
-  );
+    ? partitionFromEnd(tokens, -2)
+    : null;
 }
 
 function endsWithば(tokens: ReadonlyArray<UniDicToken>) {
   const [penultimate, last] = tokens.slice(-2);
   if (!penultimate || !last) {
-    return false;
+    return null;
   }
 
-  return (
-    penultimate.cForm === '仮定形-一般' &&
+  return penultimate.cForm === '仮定形-一般' &&
     last.surface === 'ば' &&
     last.pos === '助詞,接続助詞,*,*'
-  );
+    ? partitionFromEnd(tokens, -1)
+    : null;
 }
 
 function endsWithそうだorみたいだ(tokens: ReadonlyArray<UniDicToken>) {
   const [terminus, penultimate, da] = tokens.slice(-3);
   if (!terminus || !penultimate || !da) {
-    return false;
+    return null;
   }
 
-  return (
-    isTerminal(terminus) &&
+  return isTerminal(terminus) &&
     ((penultimate.surface === 'そう' &&
       penultimate.pos === '名詞,助動詞語幹,*,*') ||
       (penultimate.surface === 'みたい' &&
         penultimate.pos === '形状詞,助動詞語幹,*,*')) &&
     da.surface === 'だ' &&
     da.pos === '助動詞,*,*,*'
-  );
+    ? partitionFromEnd(tokens, -2)
+    : null;
 }
 
 function endsWithらしい(tokens: ReadonlyArray<UniDicToken>) {
   const [penultimate, last] = tokens.slice(-2);
   if (!penultimate || !last) {
-    return false;
+    return null;
   }
 
-  return (
-    isTerminal(penultimate) &&
+  return isTerminal(penultimate) &&
     last.surface === 'らしい' &&
     last.pos === '接尾辞,形容詞的,*,*'
-  );
+    ? partitionFromEnd(tokens, -1)
+    : null;
 }
 
 function endsWithどころか(tokens: ReadonlyArray<UniDicToken>) {
   const [terminus, dokoro, ka] = tokens.slice(-3);
   if (!terminus || !dokoro || !ka) {
-    return false;
+    return null;
   }
 
-  return (
-    isAttributive(terminus) &&
+  return isAttributive(terminus) &&
     dokoro.surface === 'どころ' &&
     dokoro.pos === '助詞,副助詞,*,*' &&
     ka.surface === 'か' &&
     ka.pos === '助詞,副助詞,*,*'
-  );
+    ? partitionFromEnd(tokens, -2)
+    : null;
 }
 
 function endsWithようだ(tokens: ReadonlyArray<UniDicToken>) {
   const [terminus, penultimate, da] = tokens.slice(-3);
   if (!terminus || !penultimate || !da) {
-    return false;
+    return null;
   }
 
-  return (
-    isAttributive(terminus) &&
+  return isAttributive(terminus) &&
     penultimate.surface === 'よう' &&
     penultimate.pos === '形状詞,助動詞語幹,*,*' &&
     da.surface === 'だ' &&
     da.pos === '助動詞,*,*,*'
-  );
+    ? partitionFromEnd(tokens, -2)
+    : null;
 }
 
 function endsWithぐらいetc(tokens: ReadonlyArray<UniDicToken>) {
   const [penultimate, last] = tokens.slice(-2);
   if (!penultimate || !last) {
-    return false;
+    return null;
   }
 
-  return (
-    isAttributive(penultimate) &&
+  return isAttributive(penultimate) &&
     ((['ぐらい', 'くらい', 'ばかり', 'まで'].includes(last.surface) &&
       last.pos === '助詞,副助詞,*,*') ||
       (last.surface === 'より' && last.pos === '助詞,格助詞,*,*'))
-  );
+    ? partitionFromEnd(tokens, -1)
+    : null;
 }
 
 function endsWithだろうorでしょう(tokens: ReadonlyArray<UniDicToken>) {
   const [penultimate, last] = tokens.slice(-2);
   if (!penultimate || !last) {
-    return false;
+    return null;
   }
 
-  return (
-    isTerminal(penultimate) &&
+  return isTerminal(penultimate) &&
     ['だろう', 'でしょう'].includes(last.surface) &&
     last.pos === '助動詞,*,*,*'
-  );
+    ? partitionFromEnd(tokens, -1)
+    : null;
+}
+
+function partitionFromEnd<T, N extends number>(
+  array: ReadonlyArray<T>,
+  end: N
+) {
+  if (end >= 0) {
+    throw new Error('Expected partition to be a number below zero.');
+  }
+
+  return [array.slice(0, end), array.slice(end)] as [
+    start: T[],
+    end: N extends -1
+      ? [T]
+      : N extends -2
+      ? [T, T]
+      : N extends -3
+      ? [T, T, T]
+      : N extends -4
+      ? [T, T, T, T]
+      : N extends -5
+      ? [T, T, T, T, T]
+      : N extends -6
+      ? [T, T, T, T, T, T]
+      : N extends -7
+      ? [T, T, T, T, T, T, T]
+      : N extends -8
+      ? [T, T, T, T, T, T, T, T]
+      : N extends -9
+      ? [T, T, T, T, T, T, T, T, T]
+      : T[],
+  ];
 }
 
 function agglutinateCausative(
@@ -889,3 +1163,10 @@ function agglutinatePassive(
 type Base = UniDicTokenVerb | UniDicTokenAdjectiveI | UniDicTokenAdjectiveNa;
 
 const antepenultimateIndex = -2;
+
+type PitchPrediction = {
+  confidence: 'speculative' | 'high' | 'verified';
+  accent: [number, ...number[]];
+  reason: string;
+};
+type PitchPredictions = [PitchPrediction, ...PitchPrediction[]];

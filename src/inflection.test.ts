@@ -6,47 +6,47 @@ describe('getPitch', () => {
   describe('suru', () => {
     describe('する', () => {
       test('negative', () => {
-        expect(getPitch(unidicData.suru.shinai)).toEqual(0);
+        expect(getPitch(unidicData.suru.shinai)).toMatchObject(just(0));
       });
 
       test('polite', () => {
-        expect(getPitch(unidicData.suru.shimasu)).toEqual(2);
+        expect(getPitch(unidicData.suru.shimasu)).toMatchObject(just(2));
       });
 
       test('non-past', () => {
-        expect(getPitch(unidicData.suru.suru)).toEqual(0);
+        expect(getPitch(unidicData.suru.suru)).toMatchObject(just(0));
       });
 
       test('gerundive', () => {
-        expect(getPitch(unidicData.suru.shite)).toEqual(0);
+        expect(getPitch(unidicData.suru.shite)).toMatchObject(just(0));
       });
 
       test('past', () => {
-        expect(getPitch(unidicData.suru.shita)).toEqual(0);
+        expect(getPitch(unidicData.suru.shita)).toMatchObject(just(0));
       });
 
       test('conditional', () => {
-        expect(getPitch(unidicData.suru.sureba)).toEqual(2);
+        expect(getPitch(unidicData.suru.sureba)).toMatchObject(just(2));
       });
 
       test('volitional', () => {
-        expect(getPitch(unidicData.suru.shiyou)).toEqual(2);
+        expect(getPitch(unidicData.suru.shiyou)).toMatchObject(just(2));
       });
 
       test('causative', () => {
-        expect(getPitch(unidicData.suru.saseru)).toEqual(0);
+        expect(getPitch(unidicData.suru.saseru)).toMatchObject(just(0));
       });
 
       test('passive', () => {
-        expect(getPitch(unidicData.suru.sareru)).toEqual(0);
+        expect(getPitch(unidicData.suru.sareru)).toMatchObject(just(0));
       });
 
       test('CP', () => {
-        expect(getPitch(unidicData.suru.saserareru)).toEqual(0);
+        expect(getPitch(unidicData.suru.saserareru)).toMatchObject(just(0));
       });
 
       test('imperative', () => {
-        expect(getPitch(unidicData.suru.shiro)).toEqual(0);
+        expect(getPitch(unidicData.suru.shiro)).toMatchObject(just(0));
       });
     });
   });
@@ -54,47 +54,47 @@ describe('getPitch', () => {
   describe('kuru', () => {
     describe('来る', () => {
       test('negative', () => {
-        expect(getPitch(unidicData.kuru.konai)).toEqual(1);
+        expect(getPitch(unidicData.kuru.konai)).toMatchObject(just(1));
       });
 
       test('polite', () => {
-        expect(getPitch(unidicData.kuru.kimasu)).toEqual(2);
+        expect(getPitch(unidicData.kuru.kimasu)).toMatchObject(just(2));
       });
 
       test('non-past', () => {
-        expect(getPitch(unidicData.kuru.kuru)).toEqual(1);
+        expect(getPitch(unidicData.kuru.kuru)).toMatchObject(just(1));
       });
 
       test('gerundive', () => {
-        expect(getPitch(unidicData.kuru.kite)).toEqual(1);
+        expect(getPitch(unidicData.kuru.kite)).toMatchObject(just(1));
       });
 
       test('past', () => {
-        expect(getPitch(unidicData.kuru.kita)).toEqual(1);
+        expect(getPitch(unidicData.kuru.kita)).toMatchObject(just(1));
       });
 
       test('conditional', () => {
-        expect(getPitch(unidicData.kuru.kureba)).toEqual(1);
+        expect(getPitch(unidicData.kuru.kureba)).toMatchObject(just(1));
       });
 
       test('volitional', () => {
-        expect(getPitch(unidicData.kuru.koyou)).toEqual(2);
+        expect(getPitch(unidicData.kuru.koyou)).toMatchObject(just(2));
       });
 
       test('causative', () => {
-        expect(getPitch(unidicData.kuru.kosaseru)).toEqual(3);
+        expect(getPitch(unidicData.kuru.kosaseru)).toMatchObject(just(3));
       });
 
       test('passive', () => {
-        expect(getPitch(unidicData.kuru.korareru)).toEqual(3);
+        expect(getPitch(unidicData.kuru.korareru)).toMatchObject(just(3));
       });
 
       test('CP', () => {
-        expect(getPitch(unidicData.kuru.kosaserareru)).toEqual(5);
+        expect(getPitch(unidicData.kuru.kosaserareru)).toMatchObject(just(5));
       });
 
       test('imperative', () => {
-        expect(getPitch(unidicData.kuru.koi)).toEqual(1);
+        expect(getPitch(unidicData.kuru.koi)).toMatchObject(just(1));
       });
     });
   });
@@ -107,31 +107,31 @@ describe('getPitch', () => {
         const hareru = unidicData.ichidan.accented.hareru;
 
         test('negative', () => {
-          expect(getPitch(hareru.harenai)).toEqual(2);
+          expect(getPitch(hareru.harenai)).toMatchObject(just(2));
         });
 
         test('polite', () => {
-          expect(getPitch(hareru.haremasu)).toEqual(3);
+          expect(getPitch(hareru.haremasu)).toMatchObject(just(3));
         });
 
         test('non-past', () => {
-          expect(getPitch(hareru.hareru)).toEqual(2);
+          expect(getPitch(hareru.hareru)).toMatchObject(just(2));
         });
 
         test('gerundive', () => {
-          expect(getPitch(hareru.harete)).toEqual(1);
+          expect(getPitch(hareru.harete)).toMatchObject(just(1));
         });
 
         test('past', () => {
-          expect(getPitch(hareru.hareta)).toEqual(1);
+          expect(getPitch(hareru.hareta)).toMatchObject(just(1));
         });
 
         test('conditional', () => {
-          expect(getPitch(hareru.harereba)).toEqual(2);
+          expect(getPitch(hareru.harereba)).toMatchObject(just(2));
         });
 
         test('volitional', () => {
-          expect(getPitch(hareru.hareyou)).toEqual(3);
+          expect(getPitch(hareru.hareyou)).toMatchObject(just(3));
         });
       });
 
@@ -139,72 +139,72 @@ describe('getPitch', () => {
       describe('見る', () => {
         const miru = unidicData.ichidan.accented.miru;
         test('negative', () => {
-          expect(getPitch(miru.minai)).toEqual(1);
+          expect(getPitch(miru.minai)).toMatchObject(just(1));
         });
 
         test('polite', () => {
-          expect(getPitch(miru.mimasu)).toEqual(2);
+          expect(getPitch(miru.mimasu)).toMatchObject(just(2));
         });
 
         test('non-past', () => {
-          expect(getPitch(miru.miru)).toEqual(1);
+          expect(getPitch(miru.miru)).toMatchObject(just(1));
         });
 
         test('gerundive', () => {
-          expect(getPitch(miru.mite)).toEqual(1);
+          expect(getPitch(miru.mite)).toMatchObject(just(1));
         });
 
         test('past', () => {
-          expect(getPitch(miru.mita)).toEqual(1);
+          expect(getPitch(miru.mita)).toMatchObject(just(1));
         });
 
         test('conditional', () => {
-          expect(getPitch(miru.mireba)).toEqual(1);
+          expect(getPitch(miru.mireba)).toMatchObject(just(1));
         });
 
         test('volitional', () => {
-          expect(getPitch(miru.miyou)).toEqual(2);
+          expect(getPitch(miru.miyou)).toMatchObject(just(2));
         });
 
         describe('causative', () => {
           test('non-past', () => {
-            expect(getPitch(miru.misaseru)).toEqual(3);
+            expect(getPitch(miru.misaseru)).toMatchObject(just(3));
           });
 
           test('negative', () => {
-            expect(getPitch(miru.misasenai)).toEqual(3);
+            expect(getPitch(miru.misasenai)).toMatchObject(just(3));
           });
 
           test('polite', () => {
             // TODO: substantiate
-            expect(getPitch(miru.misasemasu)).toEqual(4);
+            expect(getPitch(miru.misasemasu)).toMatchObject(just(4));
           });
         });
 
         test('passive', () => {
-          expect(getPitch(miru.mirareru)).toEqual(3);
+          expect(getPitch(miru.mirareru)).toMatchObject(just(3));
         });
 
         describe('CP', () => {
           test('non-past', () => {
-            expect(getPitch(miru.misaserareru)).toEqual(5);
+            expect(getPitch(miru.misaserareru)).toMatchObject(just(5));
           });
         });
 
         describe('accentless auxiliaries', () => {
           describe('simple', () => {
             test('〜に', () => {
-              expect(getPitch(miru.mini)).toEqual(1);
+              expect(getPitch(miru.mini)).toMatchObject(just(1));
             });
             // TODO: this is simply the past tense again; decide how to refactor
             test('〜た', () => {
-              expect(getPitch(miru.mita)).toEqual(1);
+              expect(getPitch(miru.mita)).toMatchObject(just(1));
             });
           });
         });
 
         test('imperative', () => {
-          expect(getPitch(miru.miro)).toEqual(1);
+          expect(getPitch(miru.miro)).toMatchObject(just(1));
         });
       });
     });
@@ -214,84 +214,84 @@ describe('getPitch', () => {
 
       describe('腫れる', () => {
         test('negative', () => {
-          expect(getPitch(hareru.harenai)).toEqual(0);
+          expect(getPitch(hareru.harenai)).toMatchObject(just(0));
         });
 
         test('polite', () => {
-          expect(getPitch(hareru.haremasu)).toEqual(3);
+          expect(getPitch(hareru.haremasu)).toMatchObject(just(3));
         });
 
         test('non-past', () => {
-          expect(getPitch(hareru.hareru)).toEqual(0);
+          expect(getPitch(hareru.hareru)).toMatchObject(just(0));
         });
 
         test('gerundive', () => {
-          expect(getPitch(hareru.harete)).toEqual(0);
+          expect(getPitch(hareru.harete)).toMatchObject(just(0));
         });
 
         test('past', () => {
-          expect(getPitch(hareru.hareta)).toEqual(0);
+          expect(getPitch(hareru.hareta)).toMatchObject(just(0));
         });
 
         test('conditional', () => {
-          expect(getPitch(hareru.harereba)).toEqual(3);
+          expect(getPitch(hareru.harereba)).toMatchObject(just(3));
         });
 
         test('volitional', () => {
-          expect(getPitch(hareru.hareyou)).toEqual(3);
+          expect(getPitch(hareru.hareyou)).toMatchObject(just(3));
         });
 
         // Warning! Passive of "to become swollen" doesn't really make any sense
         describe('passive', () => {
           test('negative', () => {
-            expect(getPitch(hareru.harerarenai)).toEqual(0);
+            expect(getPitch(hareru.harerarenai)).toMatchObject(just(0));
           });
 
           test('non-past', () => {
-            expect(getPitch(hareru.harerareru)).toEqual(0);
+            expect(getPitch(hareru.harerareru)).toMatchObject(just(0));
           });
 
           test('gerundive', () => {
-            expect(getPitch(hareru.harerarete)).toEqual(0);
+            expect(getPitch(hareru.harerarete)).toMatchObject(just(0));
           });
 
           test('past', () => {
-            expect(getPitch(hareru.harerareta)).toEqual(0);
+            expect(getPitch(hareru.harerareta)).toMatchObject(just(0));
           });
         });
 
         describe('causative', () => {
           test('negative', () => {
-            expect(getPitch(hareru.haresasenai)).toEqual(0);
+            expect(getPitch(hareru.haresasenai)).toMatchObject(just(0));
           });
 
           test('non-past', () => {
-            expect(getPitch(hareru.haresaseru)).toEqual(0);
+            expect(getPitch(hareru.haresaseru)).toMatchObject(just(0));
           });
 
           test('gerundive', () => {
-            expect(getPitch(hareru.haresasete)).toEqual(0);
+            expect(getPitch(hareru.haresasete)).toMatchObject(just(0));
           });
 
           test('past', () => {
-            expect(getPitch(hareru.haresaseta)).toEqual(0);
+            expect(getPitch(hareru.haresaseta)).toMatchObject(just(0));
           });
 
           describe('CP', () => {
             test('negative', () => {
-              expect(getPitch(hareru.haresaserarenai)).toEqual(0);
+              expect(getPitch(hareru.haresaserarenai)).toMatchObject(just(0));
             });
 
             test('non-past', () => {
-              expect(getPitch(hareru.haresaserareru)).toEqual(0);
+              expect(getPitch(hareru.haresaserareru)).toMatchObject(just(0));
             });
 
             test('gerundive', () => {
-              expect(getPitch(hareru.haresaserarete)).toEqual(0);
+              expect(getPitch(hareru.haresaserarete)).toMatchObject(just(0));
             });
 
             test('past', () => {
-              expect(getPitch(hareru.haresaserareta)).toEqual(0);
+              expect(getPitch(hareru.haresaserareta)).toMatchObject(just(0));
             });
           });
         });
@@ -300,47 +300,47 @@ describe('getPitch', () => {
       describe('始める', () => {
         const hajimeru = unidicData.ichidan.unaccented.hajimeru;
         test('negative', () => {
-          expect(getPitch(hajimeru.hajimenai)).toEqual(0);
+          expect(getPitch(hajimeru.hajimenai)).toMatchObject(just(0));
         });
 
         test('polite', () => {
-          expect(getPitch(hajimeru.hajimemasu)).toEqual(4);
+          expect(getPitch(hajimeru.hajimemasu)).toMatchObject(just(4));
         });
 
         test('non-past', () => {
-          expect(getPitch(hajimeru.hajimeru)).toEqual(0);
+          expect(getPitch(hajimeru.hajimeru)).toMatchObject(just(0));
         });
 
         test('gerundive', () => {
-          expect(getPitch(hajimeru.hajimete)).toEqual(0);
+          expect(getPitch(hajimeru.hajimete)).toMatchObject(just(0));
         });
 
         test('past', () => {
-          expect(getPitch(hajimeru.hajimeta)).toEqual(0);
+          expect(getPitch(hajimeru.hajimeta)).toMatchObject(just(0));
         });
 
         test('conditional', () => {
-          expect(getPitch(hajimeru.hajimereba)).toEqual(4);
+          expect(getPitch(hajimeru.hajimereba)).toMatchObject(just(4));
         });
 
         test('volitional', () => {
-          expect(getPitch(hajimeru.hajimeyou)).toEqual(4);
+          expect(getPitch(hajimeru.hajimeyou)).toMatchObject(just(4));
         });
 
         test('causative', () => {
-          expect(getPitch(hajimeru.hajimesaseru)).toEqual(0);
+          expect(getPitch(hajimeru.hajimesaseru)).toMatchObject(just(0));
         });
 
         test('passive', () => {
-          expect(getPitch(hajimeru.hajimerareru)).toEqual(0);
+          expect(getPitch(hajimeru.hajimerareru)).toMatchObject(just(0));
         });
 
         test('CP', () => {
-          expect(getPitch(hajimeru.hajimesaserareru)).toEqual(0);
+          expect(getPitch(hajimeru.hajimesaserareru)).toMatchObject(just(0));
         });
 
         test('imperative', () => {
-          expect(getPitch(hajimeru.hajimero)).toEqual(0);
+          expect(getPitch(hajimeru.hajimero)).toMatchObject(just(0));
         });
       });
     });
@@ -353,99 +353,99 @@ describe('getPitch', () => {
         const kaku = unidicData.godan.accented.kaku;
 
         test('negative', () => {
-          expect(getPitch(kaku.kakanai)).toEqual(2);
+          expect(getPitch(kaku.kakanai)).toMatchObject(just(2));
         });
 
         test('polite', () => {
-          expect(getPitch(kaku.kakimasu)).toEqual(3);
+          expect(getPitch(kaku.kakimasu)).toMatchObject(just(3));
         });
 
         test('non-past', () => {
-          expect(getPitch(kaku.kaku)).toEqual(1);
+          expect(getPitch(kaku.kaku)).toMatchObject(just(1));
         });
 
         test('gerundive', () => {
-          expect(getPitch(kaku.kaite)).toEqual(1);
+          expect(getPitch(kaku.kaite)).toMatchObject(just(1));
         });
 
         test('past', () => {
-          expect(getPitch(kaku.kaita)).toEqual(1);
+          expect(getPitch(kaku.kaita)).toMatchObject(just(1));
         });
 
         test('conditional', () => {
-          expect(getPitch(kaku.kakeba)).toEqual(1);
+          expect(getPitch(kaku.kakeba)).toMatchObject(just(1));
         });
 
         test('volitional', () => {
-          expect(getPitch(kaku.kakou)).toEqual(2);
+          expect(getPitch(kaku.kakou)).toMatchObject(just(2));
         });
 
         describe('causative', () => {
           test('non-past', () => {
-            expect(getPitch(kaku.kakaseru)).toEqual(3);
+            expect(getPitch(kaku.kakaseru)).toMatchObject(just(3));
           });
 
           test('negative', () => {
-            expect(getPitch(kaku.kakasenai)).toEqual(3);
+            expect(getPitch(kaku.kakasenai)).toMatchObject(just(3));
           });
 
           // test('polite', () => {
           //   // TODO: substantiate
-          //   expect(getPitch(kaku.kakasemasu)).toEqual(4);
+          //   expect(getPitch(kaku.kakasemasu)).toMatchObject(just(4));
           // });
 
           test('gerundive', () => {
-            expect(getPitch(kaku.kakasete)).toEqual(2);
+            expect(getPitch(kaku.kakasete)).toMatchObject(just(2));
           });
 
           test('past', () => {
-            expect(getPitch(kaku.kakaseta)).toEqual(2);
+            expect(getPitch(kaku.kakaseta)).toMatchObject(just(2));
           });
 
           describe('CP', () => {
             test('non-past', () => {
-              expect(getPitch(kaku.kakaserareru)).toEqual(5);
+              expect(getPitch(kaku.kakaserareru)).toMatchObject(just(5));
             });
 
             test('negative', () => {
-              expect(getPitch(kaku.kakaserarenai)).toEqual(5);
+              expect(getPitch(kaku.kakaserarenai)).toMatchObject(just(5));
             });
 
             // test('polite', () => {
             //   // TODO: substantiate
-            //   expect(getPitch(kaku.kakaseraremasu)).toEqual(6);
+            //   expect(getPitch(kaku.kakaseraremasu)).toMatchObject(just(6));
             // });
 
             test('gerundive', () => {
-              expect(getPitch(kaku.kakaserarete)).toEqual(4);
+              expect(getPitch(kaku.kakaserarete)).toMatchObject(just(4));
             });
 
             test('past', () => {
-              expect(getPitch(kaku.kakaserareta)).toEqual(4);
+              expect(getPitch(kaku.kakaserareta)).toMatchObject(just(4));
             });
           });
         });
 
         describe('passive', () => {
           test('non-past', () => {
-            expect(getPitch(kaku.kakareru)).toEqual(3);
+            expect(getPitch(kaku.kakareru)).toMatchObject(just(3));
           });
 
           test('negative', () => {
-            expect(getPitch(kaku.kakarenai)).toEqual(3);
+            expect(getPitch(kaku.kakarenai)).toMatchObject(just(3));
           });
 
           // test('polite', () => {
           //   // TODO: substantiate
-          //   expect(getPitch(kaku.kakaremasu)).toEqual(4);
+          //   expect(getPitch(kaku.kakaremasu)).toMatchObject(just(4));
           // });
 
           test('gerundive', () => {
-            expect(getPitch(kaku.kakarete)).toEqual(2);
+            expect(getPitch(kaku.kakarete)).toMatchObject(just(2));
           });
 
           test('past', () => {
-            expect(getPitch(kaku.kakareta)).toEqual(2);
+            expect(getPitch(kaku.kakareta)).toMatchObject(just(2));
           });
         });
       });
@@ -454,31 +454,31 @@ describe('getPitch', () => {
         const yorokobu = unidicData.godan.accented.yorokobu;
 
         test('negative', () => {
-          expect(getPitch(yorokobu.yorokobanai)).toEqual(4);
+          expect(getPitch(yorokobu.yorokobanai)).toMatchObject(just(4));
         });
 
         test('polite', () => {
-          expect(getPitch(yorokobu.yorokobimasu)).toEqual(5);
+          expect(getPitch(yorokobu.yorokobimasu)).toMatchObject(just(5));
         });
 
         test('non-past', () => {
-          expect(getPitch(yorokobu.yorokobu)).toEqual(3);
+          expect(getPitch(yorokobu.yorokobu)).toMatchObject(just(3));
         });
 
         test('gerundive', () => {
-          expect(getPitch(yorokobu.yorokonde)).toEqual(3);
+          expect(getPitch(yorokobu.yorokonde)).toMatchObject(just(3));
         });
 
         test('past', () => {
-          expect(getPitch(yorokobu.yorokonda)).toEqual(3);
+          expect(getPitch(yorokobu.yorokonda)).toMatchObject(just(3));
         });
 
         test('conditional', () => {
-          expect(getPitch(yorokobu.yorokobeba)).toEqual(3);
+          expect(getPitch(yorokobu.yorokobeba)).toMatchObject(just(3));
         });
 
         test('volitional', () => {
-          expect(getPitch(yorokobu.yorokobou)).toEqual(4);
+          expect(getPitch(yorokobu.yorokobou)).toMatchObject(just(4));
         });
       });
 
@@ -486,47 +486,47 @@ describe('getPitch', () => {
       describe('作る', () => {
         const tsukuru = unidicData.godan.accented.tsukuru;
         test('negative', () => {
-          expect(getPitch(tsukuru.tsukuranai)).toEqual(3);
+          expect(getPitch(tsukuru.tsukuranai)).toMatchObject(just(3));
         });
 
         test('polite', () => {
-          expect(getPitch(tsukuru.tsukurimasu)).toEqual(4);
+          expect(getPitch(tsukuru.tsukurimasu)).toMatchObject(just(4));
         });
 
         test('non-past', () => {
-          expect(getPitch(tsukuru.tsukuru)).toEqual(2);
+          expect(getPitch(tsukuru.tsukuru)).toMatchObject(just(2));
         });
 
         test('gerundive', () => {
-          expect(getPitch(tsukuru.tsukutte)).toEqual(2);
+          expect(getPitch(tsukuru.tsukutte)).toMatchObject(just(2));
         });
 
         test('past', () => {
-          expect(getPitch(tsukuru.tsukutta)).toEqual(2);
+          expect(getPitch(tsukuru.tsukutta)).toMatchObject(just(2));
         });
 
         test('conditional', () => {
-          expect(getPitch(tsukuru.tsukureba)).toEqual(2);
+          expect(getPitch(tsukuru.tsukureba)).toMatchObject(just(2));
         });
 
         test('volitional', () => {
-          expect(getPitch(tsukuru.tsukurou)).toEqual(3);
+          expect(getPitch(tsukuru.tsukurou)).toMatchObject(just(3));
         });
 
         test('causative', () => {
-          expect(getPitch(tsukuru.tsukuraseru)).toEqual(4);
+          expect(getPitch(tsukuru.tsukuraseru)).toMatchObject(just(4));
         });
 
         test('passive', () => {
-          expect(getPitch(tsukuru.tsukurareru)).toEqual(4);
+          expect(getPitch(tsukuru.tsukurareru)).toMatchObject(just(4));
         });
 
         test('CP', () => {
-          expect(getPitch(tsukuru.tsukuraserareru)).toEqual(6);
+          expect(getPitch(tsukuru.tsukuraserareru)).toMatchObject(just(6));
         });
 
         test('imperative', () => {
-          expect(getPitch(tsukuru.tsukure)).toEqual(2);
+          expect(getPitch(tsukuru.tsukure)).toMatchObject(just(2));
         });
       });
     });
@@ -536,91 +536,96 @@ describe('getPitch', () => {
         const hataraku = unidicData.godan.unaccented.hataraku;
 
         test('negative', () => {
-          expect(getPitch(hataraku.hatarakanai)).toEqual(0);
+          expect(getPitch(hataraku.hatarakanai)).toMatchObject(just(0));
         });
 
         test('polite', () => {
-          expect(getPitch(hataraku.hatarakimasu)).toEqual(5);
+          expect(getPitch(hataraku.hatarakimasu)).toMatchObject(just(5));
         });
 
         test('non-past', () => {
-          expect(getPitch(hataraku.hataraku)).toEqual(0);
+          expect(getPitch(hataraku.hataraku)).toMatchObject(just(0));
         });
 
         test('gerundive', () => {
-          expect(getPitch(hataraku.hataraite)).toEqual(0);
+          expect(getPitch(hataraku.hataraite)).toMatchObject(just(0));
         });
 
         test('past', () => {
-          expect(getPitch(hataraku.hataraita)).toEqual(0);
+          expect(getPitch(hataraku.hataraita)).toMatchObject(just(0));
         });
 
         test('conditional', () => {
-          expect(getPitch(hataraku.hatarakeba)).toEqual(4);
+          expect(getPitch(hataraku.hatarakeba)).toMatchObject(just(4));
         });
 
         test('volitional', () => {
-          expect(getPitch(hataraku.hatarakou)).toEqual(4);
+          expect(getPitch(hataraku.hatarakou)).toMatchObject(just(4));
         });
       });
       describe('言う', () => {
         const iu = unidicData.godan.unaccented.iu;
 
         test('negative', () => {
-          expect(getPitch(iu.iwanai)).toEqual(0);
+          expect(getPitch(iu.iwanai)).toMatchObject(just(0));
         });
 
         test('polite', () => {
-          expect(getPitch(iu.iimasu)).toEqual(3);
+          expect(getPitch(iu.iimasu)).toMatchObject(just(3));
         });
 
         test('non-past', () => {
-          expect(getPitch(iu.iu)).toEqual(0);
+          expect(getPitch(iu.iu)).toMatchObject(just(0));
         });
 
         test('gerundive', () => {
-          expect(getPitch(iu.itte)).toEqual(0);
+          expect(getPitch(iu.itte)).toMatchObject(just(0));
         });
 
         test('past', () => {
-          expect(getPitch(iu.itta)).toEqual(0);
+          expect(getPitch(iu.itta)).toMatchObject(just(0));
         });
 
         test('conditional', () => {
-          expect(getPitch(iu.ieba)).toEqual(1);
+          expect(getPitch(iu.ieba)).toMatchObject(just(1));
         });
 
         test('volitional', () => {
-          expect(getPitch(iu.iou)).toEqual(1);
+          expect(getPitch(iu.iou)).toMatchObject(just(1));
         });
 
         describe('causative', () => {
           test('non-past', () => {
-            expect(getPitch(iu.iwaseru)).toEqual(0);
+            expect(getPitch(iu.iwaseru)).toMatchObject(just(0));
           });
 
           test('negative', () => {
-            expect(getPitch(iu.iwasenai)).toEqual(0);
+            expect(getPitch(iu.iwasenai)).toMatchObject(just(0));
           });
 
           test('polite', () => {
             // TODO: substantiate
-            expect(getPitch(iu.iwasemasu)).toEqual(4);
+            expect(getPitch(iu.iwasemasu)).toMatchObject(just(4));
           });
         });
 
         test('passive', () => {
-          expect(getPitch(iu.iwareru)).toEqual(0);
+          expect(getPitch(iu.iwareru)).toMatchObject(just(0));
         });
 
         test('CP', () => {
-          expect(getPitch(iu.iwaserareru)).toEqual(0);
+          expect(getPitch(iu.iwaserareru)).toMatchObject(just(0));
         });
 
         test('imperative', () => {
-          expect(getPitch(iu.ie)).toEqual(0);
+          expect(getPitch(iu.ie)).toMatchObject(just(0));
         });
       });
     });
   });
 });
+
+/** A shorthand to help us expect 'just' a single prediction to be returned. */
+function just(accent: number) {
+  return { accent: [accent] };
+}
