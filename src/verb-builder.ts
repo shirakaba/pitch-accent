@@ -248,7 +248,7 @@ export class VerbBuilder {
         break;
       }
       case 'conjunctive': {
-        if (this.currentForm !== "ren'youkei") {
+        if (this.currentForm !== 'renyoukei') {
           return null;
         }
 
@@ -263,7 +263,7 @@ export class VerbBuilder {
           if (this.currentForm !== 'onbinkei') {
             return null;
           }
-        } else if (this.currentForm !== "ren'youkei") {
+        } else if (this.currentForm !== 'renyoukei') {
           return null;
         }
 
@@ -341,7 +341,7 @@ export class VerbBuilder {
             return null;
           }
         } else {
-          if (this.currentForm !== "ren'youkei") {
+          if (this.currentForm !== 'renyoukei') {
             return null;
           }
         }

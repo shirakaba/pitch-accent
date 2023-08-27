@@ -134,7 +134,7 @@ export function conjugateGodan(verb: TokenVerb, base: Base) {
       return `${onbinkei}${shiftChar(finalChar, 'あ')}`;
     case 'ishikei':
       return `${onbinkei}${shiftChar(finalChar, 'お')}`;
-    case "ren'youkei":
+    case 'renyoukei':
       return `${onbinkei}${shiftChar(finalChar, 'い')}`;
     case 'onbinkei':
       return onbinkei;
@@ -153,7 +153,7 @@ export function conjugateIchidan(verb: TokenVerb, base: Base) {
     case 'meireikei':
     case 'mizenkei':
     case 'ishikei':
-    case "ren'youkei":
+    case 'renyoukei':
     case 'onbinkei':
       return baseMorae.slice(0, -1).join('');
   }
@@ -172,7 +172,7 @@ export function conjugateKuru(verb: TokenVerb, base: Base) {
       return baseMorae[0] === '来' ? '来' : 'こ';
     case 'meireikei':
       return `${baseMorae[0] === '来' ? '来' : 'こ'}い`;
-    case "ren'youkei":
+    case 'renyoukei':
     case 'onbinkei':
       return baseMorae[0] === '来' ? '来' : 'き';
   }
@@ -198,7 +198,7 @@ export function conjugateSuru(verb: TokenVerb, base: Base) {
       // FIXME: し and せ are also possible
       return `${baseMorae[0] === '為' ? '為' : 'さ'}`;
     case 'ishikei':
-    case "ren'youkei":
+    case 'renyoukei':
     case 'onbinkei':
       return `${baseMorae[0] === '為' ? '為' : 'し'}`;
   }
@@ -282,7 +282,7 @@ export type Base =
   | 'mizenkei'
   | 'meireikei'
   | 'ishikei'
-  | "ren'youkei"
+  | 'renyoukei'
   | 'onbinkei';
 
 type TokenAffix = { surface: string; type: string };
