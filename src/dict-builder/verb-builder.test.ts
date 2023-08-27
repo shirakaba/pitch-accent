@@ -1,4 +1,4 @@
-import { unidicData } from './unidic-data';
+import { unidicData } from '../unidic-data';
 import { VerbBuilder } from './verb-builder';
 import { describe, expect, test } from '@jest/globals';
 

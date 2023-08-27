@@ -1,6 +1,6 @@
-import { unidicData } from './unidic-data';
+import { unidicData } from '../unidic-data';
 import { VerbBuilder } from './verb-builder';
-import { UniDicToken } from './inflection';
+import { UniDicToken } from '../inflection';
 
 function generateForms(dictionaryForm: UniDicToken) {
   const verb = () => new VerbBuilder(dictionaryForm);

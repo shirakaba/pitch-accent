@@ -1,6 +1,6 @@
-import { UniDicToken, getGroup, parseAccent } from './inflection';
-import { TokenVerb } from './token';
-import { Base, conjugate, shiftChar } from './verb';
+import { UniDicToken, getGroup, parseAccent } from '../inflection';
+import { TokenVerb } from '../token';
+import { Base, conjugate, shiftChar } from '../verb';
 
 export class VerbBuilder {
   private surface: string | null;
