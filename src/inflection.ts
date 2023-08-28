@@ -1254,9 +1254,9 @@ type Base = UniDicTokenVerb | UniDicTokenAdjectiveI | UniDicTokenAdjectiveNa;
 
 const antepenultimateIndex = -2;
 
-type PitchPrediction = {
+export type PitchPrediction = {
   confidence: 'speculative' | 'high' | 'verified';
   accent: [number, ...number[]];
   reason: string;
 };
-type PitchPredictions = [PitchPrediction, ...PitchPrediction[]];
+export type PitchPredictions = [PitchPrediction, ...PitchPrediction[]];

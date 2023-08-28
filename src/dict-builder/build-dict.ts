@@ -34,4 +34,4 @@ const pitches = formsTokenized.map(([surface, tokens]) => [
   getPitch(tokens),
 ]);
 
-console.log(pitches);
+console.dir(pitches, { depth: Infinity });
