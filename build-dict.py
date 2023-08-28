@@ -24,6 +24,12 @@ surfaces = []
 for line in text.splitlines():
     for word in tagger(line):
         feature = word.feature
-        surfaces.append(word.surface)
+
+        # In populated entries (ones with more than 6 feature columns), the last
+        # two columns are just feature weights, so are not of interest.
+        if len(feature) > 6:
+            feature = feature[0:-2]
+
+        surfaces.append(word.surface + "," + ",".join(feature))
     surfaces.append("===")
 print("\n".join(surfaces[0:-1]))
