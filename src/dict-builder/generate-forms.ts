@@ -9,6 +9,8 @@ export function generateForms(dictionaryForm: UniDicToken) {
     verb().toBase('renyoukei').get()! + 'たい',
     verb().toBase('renyoukei').get()! + 'そうだ',
     verb().toBase('renyoukei').get()! + 'ながら',
+    // This fails because MeCab produces the wrong 書き token, getting confused
+    // by the suffix 書き.
     verb().toBase('renyoukei').get()! + 'は',
     verb().toBase('shuushikei').get()!,
     verb().toBase('shuushikei').get()! + 'だけ',

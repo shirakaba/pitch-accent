@@ -14,6 +14,7 @@ export function getPitch(
   const trailingSurface = trailing.map((token) => token.surface).join('');
   const allSyllables = [...syllables(surfacePron)];
 
+  // TODO: decide whether validating base is worth the false negatives.
   if (!first || !isBase(first)) {
     return null;
   }
@@ -674,10 +675,9 @@ export function getPitch(
 }
 
 function isBase(token: UniDicToken): token is Base {
-  return (
-    token.pos === '動詞,非自立可能,*,*' ||
-    token.pos === '動詞,一般,*,*' ||
-    token.pos === '形容詞,一般,*,*'
+  // WIP: adding viable base forms as I discover them
+  return ['動詞,非自立可能,*,*', '動詞,一般,*,*', '形容詞,一般,*,*'].includes(
+    token.pos
   );
 }
 
@@ -1049,10 +1049,12 @@ function endsWithそうだorみたいだ(tokens: ReadonlyArray<UniDicToken>) {
   }
 
   return isTerminal(terminus) &&
-    ((penultimate.surface === 'そう' &&
-      penultimate.pos === '名詞,助動詞語幹,*,*') ||
-      (penultimate.surface === 'みたい' &&
-        penultimate.pos === '形状詞,助動詞語幹,*,*')) &&
+    // Regardless of the techincally correct PoS, MeCab may end up selecting
+    // either, so we'll accept either.
+    ['名詞,助動詞語幹,*,*', '形状詞,助動詞語幹,*,*'].includes(
+      penultimate.pos
+    ) &&
+    ['そう', 'みたい'].includes(penultimate.surface) &&
     da.surface === 'だ' &&
     da.pos === '助動詞,*,*,*'
     ? partitionFromEnd(tokens, -2)
@@ -1067,7 +1069,9 @@ function endsWithらしい(tokens: ReadonlyArray<UniDicToken>) {
 
   return isTerminal(penultimate) &&
     last.surface === 'らしい' &&
-    last.pos === '接尾辞,形容詞的,*,*'
+    // Regardless of the techincally correct PoS, MeCab may end up selecting
+    // either, so we'll accept either.
+    ['助動詞,*,*,*', '接尾辞,形容詞的,*,*'].includes(last.pos)
     ? partitionFromEnd(tokens, -1)
     : null;
 }
@@ -1143,7 +1147,7 @@ function endsWithたい(tokens: ReadonlyArray<UniDicToken>) {
 }
 
 function endsWithそうだ(tokens: ReadonlyArray<UniDicToken>) {
-  const [verb, penultimate, last] = tokens.slice(-2);
+  const [verb, penultimate, last] = tokens.slice(-3);
   if (!verb || !penultimate || !last) {
     return null;
   }
