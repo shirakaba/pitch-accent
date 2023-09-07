@@ -1,11 +1,19 @@
 /** @type {Array<[surface: string, predictions: import('../src/inflection').PitchPredictions]>} */
 const data = [
+  ['書く', [{ confidence: 'verified', reason: 'Dictionary', accent: [1] }]],
   ['書きます', [{ confidence: 'high', reason: 'NHK 4.1', accent: [3] }]],
   ['書きたい', [{ confidence: 'high', reason: 'NHK 2', accent: [3] }]],
-  ['書きそうだ', [{ confidence: 'high', reason: 'NHK 2', accent: [3] }]],
-  ['書きながら', [{ confidence: 'high', reason: 'NHK 2', accent: [3] }]],
   ['書きは', null],
-  ['書く', [{ confidence: 'verified', reason: 'Dictionary', accent: [1] }]],
+  ['書きながら', [{ confidence: 'high', reason: 'NHK 2', accent: [3] }]],
+  ['書きそうだ', [{ confidence: 'high', reason: 'NHK 2', accent: [3] }]],
+  ['書くそうだ', [{ confidence: 'high', reason: 'NHK 1.2.a', accent: [1, 3] }]],
+  [
+    '書くぐらい',
+    [
+      { confidence: 'high', reason: 'NHK 1.2.a', accent: [3] },
+      { confidence: 'high', reason: 'NHK 1.2.a', accent: [1, 3] },
+    ],
+  ],
   ['書くだけ', [{ confidence: 'high', reason: 'NHK 1.1.a', accent: [1] }]],
   ['書くほど', [{ confidence: 'high', reason: 'NHK 1.1.a', accent: [1] }]],
   ['書くけれども', [{ confidence: 'high', reason: 'NHK 1.1.b', accent: [1] }]],
@@ -19,7 +27,6 @@ const data = [
   ['書くしか', [{ confidence: 'high', reason: 'NHK 1.1.b', accent: [1] }]],
   ['書くのだ', [{ confidence: 'high', reason: 'NHK 1.1.b', accent: [1] }]],
   ['書くので', [{ confidence: 'high', reason: 'NHK 1.1.b', accent: [1] }]],
-  ['書くそうだ', [{ confidence: 'high', reason: 'NHK 1.2.a', accent: [1, 3] }]],
   [
     '書くみたいだ',
     [{ confidence: 'high', reason: 'NHK 1.2.a', accent: [1, 3] }],
@@ -33,20 +40,13 @@ const data = [
     ],
   ],
   ['書くようだ', [{ confidence: 'high', reason: 'NHK 1.2.a', accent: [1, 3] }]],
-  [
-    '書くぐらい',
-    [
-      { confidence: 'high', reason: 'NHK 1.2.a', accent: [3] },
-      { confidence: 'high', reason: 'NHK 1.2.a', accent: [1, 3] },
-    ],
-  ],
-  [
-    '書くくらい',
-    [
-      { confidence: 'high', reason: 'NHK 1.2.a', accent: [3] },
-      { confidence: 'high', reason: 'NHK 1.2.a', accent: [1, 3] },
-    ],
-  ],
+  // [
+  //   '書くくらい',
+  //   [
+  //     { confidence: 'high', reason: 'NHK 1.2.a', accent: [3] },
+  //     { confidence: 'high', reason: 'NHK 1.2.a', accent: [1, 3] },
+  //   ],
+  // ],
   ['書くばかり', [{ confidence: 'high', reason: 'NHK 1.2.a', accent: [1, 3] }]],
   ['書くまで', [{ confidence: 'high', reason: 'NHK 1.2.a', accent: [1, 3] }]],
   ['書くだろう', [{ confidence: 'high', reason: 'NHK 1.2.b', accent: [1, 4] }]],
